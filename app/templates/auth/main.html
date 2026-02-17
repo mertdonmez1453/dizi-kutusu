@@ -1,0 +1,13 @@
+<!-- Kullanıcı giriş yaptıktan sonra gördüğü sayfa -->
+
+!doctype html>
+<html lang="tr">
+<head>
+  <meta charset="utf-8" />
+  <title>Dizi Kutusu</title>
+</head>
+<body>
+  <h1>Hoş geldin {{ session["user"]["email"] }}</h1>
+  <a href="{{ url_for('auth.logout') }}">Çıkış</a>
+</body>
+</html>
