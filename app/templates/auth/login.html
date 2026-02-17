@@ -1,0 +1,90 @@
+<!-- Kullanıcının email + şifre girdiği sayfa -->
+
+<!-- app/templates/auth/login.html -->
+<!doctype html>
+<html lang="tr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Dizi Kutusu — Login</title>
+
+  <!-- CSS -->
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/auth.css') }}">
+</head>
+
+<body>
+  <div class="page">
+    <!-- NAVBAR -->
+    <header class="nav">
+      <div class="container nav-inner">
+        <div class="brand">
+          <span class="brand-dot" aria-hidden="true"></span>
+          <span>Dizi Kutusu</span>
+        </div>
+
+        <nav class="nav-links">
+          <a href="{{ url_for('auth.login') }}">LOG IN</a>
+          <a href="{{ url_for('auth.register') }}">CREATE ACCOUNT</a>
+        </nav>
+      </div>
+    </header>
+
+    <!-- HERO -->
+    <main class="hero">
+      <div class="hero-card">
+        <h1 class="hero-title">
+          Dizileri takip et.<br>
+          İzlemek istediklerini kaydet.<br>
+          Arkadaşlarınla paylaş.
+        </h1>
+
+        <p class="hero-sub">
+          Dizi severler için sosyal dizi kutusu. (Letterboxd tarzı landing)
+        </p>
+
+        <div class="cta-row">
+          <a class="btn btn-primary" href="#login-form">Get started — it’s free!</a>
+          <a class="btn btn-ghost" href="{{ url_for('auth.login') }}">I already have an account</a>
+        </div>
+
+        <!-- Login Form -->
+        <section id="login-form" class="form-wrap">
+          <form method="POST" action="{{ url_for('auth.login') }}">
+            <div class="form-row">
+              <div>
+                <label for="email">Email</label>
+                <input id="email" name="email" type="email" placeholder="test@mail.com" required>
+              </div>
+
+              <div>
+                <label for="password">Şifre</label>
+                <input id="password" name="password" type="password" placeholder="••••" required>
+              </div>
+
+              <div class="form-actions">
+                <button class="btn btn-primary" type="submit">Log in</button>
+                <a class="small-link" href="#">Şifremi unuttum</a>
+              </div>
+            </div>
+          </form>
+        </section>
+      </div>
+    </main>
+  </div>
+
+  <!-- ✅ Random background picker -->
+  <script>
+    const backgrounds = [
+      "{{ url_for('static', filename='img/series1.jpg') }}",
+      "{{ url_for('static', filename='img/series2.jpg') }}",
+      "{{ url_for('static', filename='img/series3.jpg') }}",
+      "{{ url_for('static', filename='img/series4.jpg') }}",
+      "{{ url_for('static', filename='img/series5.jpg') }}",
+      "{{ url_for('static', filename='img/series6.jpg') }}"
+    ];
+
+    const pick = backgrounds[Math.floor(Math.random() * backgrounds.length)];
+    document.documentElement.style.setProperty('--bg-image', `url("${pick}")`);
+  </script>
+</body>
+</html>
