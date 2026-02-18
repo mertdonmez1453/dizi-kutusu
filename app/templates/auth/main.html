@@ -7,7 +7,7 @@
   <title>Dizi Kutusu</title>
 </head>
 <body>
-  <h1>Hoş geldin {{ session["user"]["email"] }}</h1>
+  <h1>Hoş geldin {{ session["user"] }}</h1>
   <a href="{{ url_for('auth.logout') }}">Çıkış</a>
 </body>
 </html>

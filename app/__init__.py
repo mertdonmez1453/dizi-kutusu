@@ -1,12 +1,15 @@
 from flask import Flask
+from app.db import db
 
 def create_app():
     app = Flask(__name__)
 
-    # session/flash için gerekli (giriş yaptı bilgisini tutacağız)
     app.config["SECRET_KEY"] = "dev-secret-key"
+    app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///app.db"
+    app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 
-    # Blueprints
+    db.init_app(app)
+
     from .routes.health import health_bp
     app.register_blueprint(health_bp)
 
