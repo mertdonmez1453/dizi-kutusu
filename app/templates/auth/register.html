@@ -1,1 +1,82 @@
-<h1>Register Page</h1>
+<!doctype html>
+<html lang="tr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Dizi Kutusu — Register</title>
+
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/auth.css') }}">
+</head>
+
+<body>
+  <div class="page">
+    <header class="nav">
+      <div class="container nav-inner">
+        <div class="brand">
+          <span class="brand-dot" aria-hidden="true"></span>
+          <span>Dizi Kutusu</span>
+        </div>
+
+        <nav class="nav-links">
+          <a href="{{ url_for('auth.login') }}">LOG IN</a>
+          <a href="{{ url_for('auth.register') }}">CREATE ACCOUNT</a>
+        </nav>
+      </div>
+    </header>
+
+    <main class="hero">
+      <div class="hero-card">
+        <h1 class="hero-title">
+          Hesap oluştur.<br>
+          Dizileri takip et.<br>
+          Listeni oluştur.
+        </h1>
+
+        <p class="hero-sub">
+          Dizi severler için sosyal dizi kutusu.
+        </p>
+
+        <div class="cta-row">
+          <button class="btn btn-primary" type="submit" form="registerForm">Create account</button>
+          <a class="btn btn-ghost" href="{{ url_for('auth.login') }}">I already have an account</a>
+        </div>
+
+        <section id="register-form" class="form-wrap">
+          <form id="registerForm" method="POST" action="{{ url_for('auth.register') }}">
+            <div class="form-row">
+              <div>
+                <label for="email">Email</label>
+                <input id="email" name="email" type="email" placeholder="test@mail.com" required>
+              </div>
+
+              <div>
+                <label for="password">Şifre</label>
+                <input id="password" name="password" type="password" placeholder="••••••••" required>
+              </div>
+
+              <div class="form-actions">
+                <button class="btn btn-primary" type="submit">Kayıt Ol</button>
+                <a class="small-link" href="{{ url_for('auth.login') }}">Zaten hesabın var mı? Giriş yap</a>
+              </div>
+            </div>
+          </form>
+        </section>
+      </div>
+    </main>
+
+  <script>
+    const backgrounds = [
+      "{{ url_for('static', filename='img/series1.jpg') }}",
+      "{{ url_for('static', filename='img/series2.jpg') }}",
+      "{{ url_for('static', filename='img/series3.jpg') }}",
+      "{{ url_for('static', filename='img/series4.jpg') }}",
+      "{{ url_for('static', filename='img/series5.jpg') }}",
+      "{{ url_for('static', filename='img/series6.jpg') }}"
+    ];
+
+    const pick = backgrounds[Math.floor(Math.random() * backgrounds.length)];
+    document.documentElement.style.setProperty('--bg-image', `url("${pick}")`);
+  </script>
+</body>
+</html>
+
