@@ -19,4 +19,7 @@ def create_app():
     from .routes.main import main_bp
     app.register_blueprint(main_bp)
 
+    from .routes.profile import profile_bp
+    app.register_blueprint(profile_bp)
+
     return app
