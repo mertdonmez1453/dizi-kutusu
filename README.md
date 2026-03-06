@@ -1,6 +1,8 @@
-Dizi Kutusu
+📺 Dizi Kutusu
 
 Dizi Kutusu, kullanıcıların izledikleri dizileri puanlayabildiği, yorum yapabildiği ve izleme listeleri oluşturabildiği bir web uygulamasıdır.
+
+Bu proje BIL 481 – Software Engineering dersi kapsamında geliştirilmiştir.
 
 📂 Repository İçeriği
 
@@ -24,3 +26,16 @@ Görev dağılımları Task Assignments Document içinde belirtilmiştir.
 Git & GitHub
 
 (Diğer teknolojiler ilerleyen aşamalarda eklenecektir)
+Flask tabanlı dizi puanlama ve yorumlama uygulaması.
+
+## Setup
+python3 -m venv .venv
+source .venv/bin/activate
+pip install -r requirements.txt
+
+## Run
+python3 run.py
+
+## Test
+pytest
+
