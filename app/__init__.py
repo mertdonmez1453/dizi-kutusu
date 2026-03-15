@@ -10,6 +10,8 @@ def create_app():
 
     db.init_app(app)
 
+    from app.models import User, Series
+
     from .routes.health import health_bp
     app.register_blueprint(health_bp)
 
@@ -18,5 +20,8 @@ def create_app():
 
     from .routes.main import main_bp
     app.register_blueprint(main_bp)
+
+    from .routes.series import series_bp
+    app.register_blueprint(series_bp)
 
     return app
