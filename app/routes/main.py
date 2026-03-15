@@ -23,6 +23,7 @@ def index():
 
 @main_bp.get("/users")
 def list_users():
+    # QUERY: Veritabanındaki tüm kullanıcıları liste halinde getirir (List All Users Query)
     users = User.query.all()
 
     result = []

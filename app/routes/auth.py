@@ -13,7 +13,7 @@ def login():
 		email = request.form.get("email")
 		password = request.form.get("password")
 
-		# Şimdilik basit kontrol
+		# QUERY: Verilen email adresine sahip kullanıcıyı veritabanında arar (Login Query)
 		user = User.query.filter_by(email=email).first()
 		if user is None:
 			return redirect(url_for("auth.register"))
@@ -34,6 +34,7 @@ def register():
 		password = request.form.get("password")
 		hashed_password = User.hash_password(password)
 
+		# QUERY: Kayıt olmak istenen email adresinin daha önce alınıp alınmadığını kontrol eder (Search Query)
 		user = User.query.filter_by(email=email).first()
 
 		if user is not None:
@@ -43,6 +44,7 @@ def register():
 				email=email,
 				password_hash=hashed_password
 			)
+			# QUERY: Yeni kullanıcıyı veritabanına ekler ve kaydeder (Insert Query)
 			db.session.add(new_user)
 			db.session.commit()
 			return redirect(url_for("auth.login"))
