@@ -15,8 +15,11 @@
     </div>
   </header>
 
-  <div class="search">
+  <div class="filter-bar">
     <input type="text" id="searchInput" placeholder="Dizi ara..." />
+    <select id="genreFilter">
+      <option value="">Tüm Türler</option>
+    </select>
   </div>
 
   <div id="loading">Diziler yükleniyor...</div>
@@ -53,6 +56,7 @@
       .then(data => {
         allSeries = data;
         document.getElementById("loading").style.display = "none";
+        populateGenres(allSeries);
         renderCards(allSeries);
       })
       .catch(() => {
@@ -62,6 +66,17 @@
         el.textContent = "Diziler yüklenirken bir hata oluştu.";
         document.getElementById("grid").before(el);
       });
+
+    function populateGenres(list) {
+      const genres = [...new Set(list.map(s => s.genre).filter(Boolean))].sort();
+      const sel = document.getElementById("genreFilter");
+      genres.forEach(g => {
+        const opt = document.createElement("option");
+        opt.value = g;
+        opt.textContent = g;
+        sel.appendChild(opt);
+      });
+    }
 
     function renderCards(list) {
       const grid = document.getElementById("grid");
@@ -84,10 +99,17 @@
       });
     }
 
-    document.getElementById("searchInput").addEventListener("input", e => {
-      const q = e.target.value.toLowerCase();
-      renderCards(allSeries.filter(s => s.title.toLowerCase().includes(q)));
-    });
+    function applyFilters() {
+      const q = document.getElementById("searchInput").value.toLowerCase();
+      const genre = document.getElementById("genreFilter").value;
+      let filtered = allSeries;
+      if (q) filtered = filtered.filter(s => s.title.toLowerCase().includes(q));
+      if (genre) filtered = filtered.filter(s => s.genre === genre);
+      renderCards(filtered);
+    }
+
+    document.getElementById("searchInput").addEventListener("input", applyFilters);
+    document.getElementById("genreFilter").addEventListener("change", applyFilters);
 
     function showDetail(s) {
       document.getElementById("modalImg").src = s.image_url || "";
