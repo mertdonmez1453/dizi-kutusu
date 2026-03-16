@@ -1,13 +1,5 @@
 /* profile.css — Profil & Ayarlar sayfaları */
 
-.back-link {
-  color: #e94560;
-  text-decoration: none;
-  font-size: 22px;
-}
-
-.back-link:hover { opacity: 0.8; }
-
 /* Profile */
 .profile-container {
   display: flex;

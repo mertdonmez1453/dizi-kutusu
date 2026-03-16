@@ -1,13 +1,5 @@
 /* detail.css — Dizi detay sayfası */
 
-.back-link {
-  color: #e94560;
-  text-decoration: none;
-  font-size: 22px;
-}
-
-.back-link:hover { opacity: 0.8; }
-
 /* Detail layout */
 .detail {
   max-width: 900px;
