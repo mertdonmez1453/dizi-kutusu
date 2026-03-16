@@ -1,10 +1,8 @@
-<!-- Kullanıcı giriş yaptıktan sonra gördüğü ana sayfa - dizi listesi -->
+{% extends "base.html" %}
 
-<!doctype html>
-<html lang="tr">
-<head>
-  <meta charset="utf-8" />
-  <title>Dizi Kutusu</title>
+{% block title %}Dizi Kutusu{% endblock %}
+
+{% block head_css %}
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body { font-family: Arial, sans-serif; background: #1a1a2e; color: #eee; padding: 20px; }
@@ -23,7 +21,6 @@
     .card .info .rating { color: #f5c518; }
     .no-img { height: 260px; background: #0f3460; display: flex; align-items: center; justify-content: center; color: #555; font-size: 12px; }
 
-    /* Detay modal */
     .overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); z-index: 10; justify-content: center; align-items: center; }
     .overlay.active { display: flex; }
     .modal { background: #16213e; border-radius: 10px; max-width: 500px; width: 90%; max-height: 80vh; overflow-y: auto; padding: 20px; position: relative; }
@@ -34,9 +31,9 @@
     .modal .meta { font-size: 12px; color: #888; margin-top: 8px; }
     #loading { text-align: center; padding: 40px; color: #888; }
   </style>
-</head>
-<body>
+{% endblock %}
 
+{% block body %}
   <header>
     <h1>🎬 Dizi Kutusu</h1>
     <div>
@@ -52,7 +49,6 @@
   <div id="loading">Diziler yükleniyor...</div>
   <div class="grid" id="grid"></div>
 
-  <!-- Detay Modal -->
   <div class="overlay" id="overlay">
     <div class="modal">
       <span class="close" id="closeModal">&times;</span>
@@ -64,11 +60,12 @@
       </div>
     </div>
   </div>
+{% endblock %}
 
+{% block scripts %}
   <script>
     let allSeries = [];
 
-    // API'den dizileri çek
     fetch("/api/series")
       .then(r => r.json())
       .then(data => {
@@ -85,8 +82,8 @@
         card.className = "card";
         card.onclick = () => showDetail(s);
         card.innerHTML = `
-          ${s.image_url 
-            ? `<img src="${s.image_url}" alt="${s.title}" />` 
+          ${s.image_url
+            ? `<img src="${s.image_url}" alt="${s.title}" />`
             : `<div class="no-img">Görsel yok</div>`}
           <div class="info">
             <h3 title="${s.title}">${s.title}</h3>
@@ -98,19 +95,17 @@
       });
     }
 
-    // Arama
     document.getElementById("searchInput").addEventListener("input", e => {
       const q = e.target.value.toLowerCase();
       renderCards(allSeries.filter(s => s.title.toLowerCase().includes(q)));
     });
 
-    // Modal
     function showDetail(s) {
       document.getElementById("modalImg").src = s.image_url || "";
       document.getElementById("modalImg").style.display = s.image_url ? "block" : "none";
       document.getElementById("modalTitle").textContent = s.title;
       document.getElementById("modalDesc").textContent = s.description || "Açıklama yok.";
-      document.getElementById("modalMeta").textContent = 
+      document.getElementById("modalMeta").textContent =
         `${s.release_year || "?"} · ${s.genre || "Bilinmiyor"} · ${s.status || ""} · Puan: ${s.rating || "-"}`;
       document.getElementById("overlay").classList.add("active");
     }
@@ -124,6 +119,4 @@
       }
     };
   </script>
-
-</body>
-</html>
+{% endblock %}

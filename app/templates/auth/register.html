@@ -1,14 +1,12 @@
-<!doctype html>
-<html lang="tr">
-<head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Dizi Kutusu — Register</title>
+{% extends "base.html" %}
 
+{% block title %}Dizi Kutusu — Register{% endblock %}
+
+{% block head_css %}
   <link rel="stylesheet" href="{{ url_for('static', filename='css/auth.css') }}">
-</head>
+{% endblock %}
 
-<body>
+{% block body %}
   <div class="page">
     <header class="nav">
       <div class="container nav-inner">
@@ -37,7 +35,6 @@
         </p>
 
         <div class="cta-row">
-          <button class="btn btn-primary" type="submit" form="registerForm">Create account</button>
           <a class="btn btn-ghost" href="{{ url_for('auth.login') }}">I already have an account</a>
         </div>
 
@@ -63,7 +60,10 @@
         </section>
       </div>
     </main>
+  </div>
+{% endblock %}
 
+{% block scripts %}
   <script>
     const backgrounds = [
       "{{ url_for('static', filename='img/series1.jpg') }}",
@@ -77,6 +77,4 @@
     const pick = backgrounds[Math.floor(Math.random() * backgrounds.length)];
     document.documentElement.style.setProperty('--bg-image', `url("${pick}")`);
   </script>
-</body>
-</html>
-
+{% endblock %}
