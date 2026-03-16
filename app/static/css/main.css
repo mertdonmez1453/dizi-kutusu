@@ -1,0 +1,122 @@
+/* main.css — Ana sayfa (giriş sonrası) */
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  font-family: Arial, sans-serif;
+  background: #1a1a2e;
+  color: #eee;
+  padding: 20px;
+}
+
+/* Header */
+header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+header h1 { font-size: 22px; }
+header a { color: #e94560; text-decoration: none; }
+header .user-email { margin-right: 12px; color: #aaa; }
+
+/* Search */
+.search { margin-bottom: 20px; }
+
+.search input {
+  width: 100%;
+  padding: 10px;
+  border: 1px solid #333;
+  border-radius: 6px;
+  background: #16213e;
+  color: #eee;
+  font-size: 14px;
+}
+
+/* Grid */
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 16px;
+}
+
+/* Card */
+.card {
+  background: #16213e;
+  border-radius: 8px;
+  overflow: hidden;
+  cursor: pointer;
+  transition: transform 0.2s;
+}
+
+.card:hover { transform: translateY(-4px); }
+.card img { width: 100%; height: 260px; object-fit: cover; }
+.card .info { padding: 10px; }
+
+.card .info h3 {
+  font-size: 14px;
+  margin-bottom: 4px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.card .info span { font-size: 12px; color: #aaa; }
+.card .info .rating { color: #f5c518; }
+
+.no-img {
+  height: 260px;
+  background: #0f3460;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #555;
+  font-size: 12px;
+}
+
+/* Modal overlay */
+.overlay {
+  display: none;
+  position: fixed;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+  background: rgba(0,0,0,0.7);
+  z-index: 10;
+  justify-content: center;
+  align-items: center;
+}
+
+.overlay.active { display: flex; }
+
+.modal {
+  background: #16213e;
+  border-radius: 10px;
+  max-width: 500px;
+  width: 90%;
+  max-height: 80vh;
+  overflow-y: auto;
+  padding: 20px;
+  position: relative;
+}
+
+.modal .close {
+  position: absolute;
+  top: 10px; right: 14px;
+  font-size: 20px;
+  cursor: pointer;
+  color: #aaa;
+}
+
+.modal img {
+  width: 100%;
+  border-radius: 6px;
+  margin-bottom: 12px;
+}
+
+.modal h2 { margin-bottom: 8px; font-size: 18px; }
+.modal p { font-size: 13px; color: #ccc; line-height: 1.5; }
+.modal .meta { font-size: 12px; color: #888; margin-top: 8px; }
+
+#loading { text-align: center; padding: 40px; color: #888; }
+#load-error { text-align: center; padding: 40px; color: #e94560; }
