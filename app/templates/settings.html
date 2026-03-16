@@ -1,0 +1,94 @@
+{% extends "base.html" %}
+
+{% block title %}Dizi Kutusu — Ayarlar{% endblock %}
+
+{% block head_css %}
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/profile.css') }}">
+{% endblock %}
+
+{% block body %}
+  <header>
+    <h1><a href="{{ url_for('main.index') }}" class="back-link">← Dizi Kutusu</a></h1>
+    <div>
+      <span class="user-email">{{ session["user"] }}</span>
+      <a href="{{ url_for('auth.logout') }}">Çıkış</a>
+    </div>
+  </header>
+
+  <div class="settings-container">
+    <div class="settings-card">
+      <h2>Şifre Güncelle</h2>
+
+      <div class="settings-msg" id="msg"></div>
+
+      <form class="settings-form" id="passwordForm">
+        <div class="field-group">
+          <label for="currentPassword">Mevcut Şifre</label>
+          <input id="currentPassword" type="password" placeholder="••••••••" required />
+        </div>
+
+        <div class="field-group">
+          <label for="newPassword">Yeni Şifre</label>
+          <input id="newPassword" type="password" placeholder="En az 6 karakter" required minlength="6" />
+        </div>
+
+        <div class="field-group">
+          <label for="confirmPassword">Yeni Şifre (Tekrar)</label>
+          <input id="confirmPassword" type="password" placeholder="••••••••" required minlength="6" />
+        </div>
+
+        <button type="submit" class="btn-save" id="btnSave">Şifreyi Güncelle</button>
+      </form>
+    </div>
+  </div>
+{% endblock %}
+
+{% block scripts %}
+  <script>
+    const form = document.getElementById("passwordForm");
+    const msg = document.getElementById("msg");
+    const btn = document.getElementById("btnSave");
+
+    function showMsg(text, type) {
+      msg.textContent = text;
+      msg.className = "settings-msg " + type;
+      setTimeout(() => { msg.className = "settings-msg"; }, 4000);
+    }
+
+    form.addEventListener("submit", e => {
+      e.preventDefault();
+
+      const currentPassword = document.getElementById("currentPassword").value;
+      const newPassword = document.getElementById("newPassword").value;
+      const confirmPassword = document.getElementById("confirmPassword").value;
+
+      if (newPassword !== confirmPassword) {
+        showMsg("Yeni şifreler eşleşmiyor.", "error");
+        return;
+      }
+
+      btn.disabled = true;
+      btn.textContent = "Güncelleniyor...";
+
+      fetch("/api/settings/password", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ current_password: currentPassword, new_password: newPassword })
+      })
+        .then(r => r.json().then(data => ({ ok: r.ok, data })))
+        .then(({ ok, data }) => {
+          if (!ok) throw new Error(data.error || "Bir hata oluştu.");
+          showMsg(data.message, "success");
+          form.reset();
+        })
+        .catch(err => {
+          showMsg(err.message, "error");
+        })
+        .finally(() => {
+          btn.disabled = false;
+          btn.textContent = "Şifreyi Güncelle";
+        });
+    });
+  </script>
+{% endblock %}
