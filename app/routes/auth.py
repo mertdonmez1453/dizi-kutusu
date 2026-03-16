@@ -21,6 +21,7 @@ def login():
             flash("E-posta ve şifre alanları boş bırakılamaz.", "error")
             return redirect(url_for("auth.login"))
 
+        # QUERY: Verilen email adresine sahip kullanıcıyı veritabanında arar (Login Query)
         user = User.query.filter_by(email=email).first()
 
         if user is None or not user.check_password(password):
@@ -54,6 +55,7 @@ def register():
             flash("Şifre en az 6 karakter olmalıdır.", "error")
             return redirect(url_for("auth.register"))
 
+        # QUERY: Kayıt olmak istenen email adresinin daha önce alınıp alınmadığını kontrol eder (Search Query)
         if User.query.filter_by(email=email).first() is not None:
             flash("Bu e-posta adresi zaten kayıtlı.", "error")
             return redirect(url_for("auth.register"))
@@ -62,6 +64,7 @@ def register():
             email=email,
             password_hash=User.hash_password(password)
         )
+        # QUERY: Yeni kullanıcıyı veritabanına ekler ve kaydeder (Insert Query)
         db.session.add(new_user)
         db.session.commit()
 

@@ -1,13 +1,129 @@
-<!-- Kullanıcı giriş yaptıktan sonra gördüğü sayfa -->
+<!-- Kullanıcı giriş yaptıktan sonra gördüğü ana sayfa - dizi listesi -->
 
-!doctype html>
+<!doctype html>
 <html lang="tr">
 <head>
   <meta charset="utf-8" />
   <title>Dizi Kutusu</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: Arial, sans-serif; background: #1a1a2e; color: #eee; padding: 20px; }
+    header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+    header h1 { font-size: 22px; }
+    header a { color: #e94560; text-decoration: none; }
+    .search { margin-bottom: 20px; }
+    .search input { width: 100%; padding: 10px; border: 1px solid #333; border-radius: 6px; background: #16213e; color: #eee; font-size: 14px; }
+    .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 16px; }
+    .card { background: #16213e; border-radius: 8px; overflow: hidden; cursor: pointer; transition: transform 0.2s; }
+    .card:hover { transform: translateY(-4px); }
+    .card img { width: 100%; height: 260px; object-fit: cover; }
+    .card .info { padding: 10px; }
+    .card .info h3 { font-size: 14px; margin-bottom: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .card .info span { font-size: 12px; color: #aaa; }
+    .card .info .rating { color: #f5c518; }
+    .no-img { height: 260px; background: #0f3460; display: flex; align-items: center; justify-content: center; color: #555; font-size: 12px; }
+
+    /* Detay modal */
+    .overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); z-index: 10; justify-content: center; align-items: center; }
+    .overlay.active { display: flex; }
+    .modal { background: #16213e; border-radius: 10px; max-width: 500px; width: 90%; max-height: 80vh; overflow-y: auto; padding: 20px; position: relative; }
+    .modal .close { position: absolute; top: 10px; right: 14px; font-size: 20px; cursor: pointer; color: #aaa; }
+    .modal img { width: 100%; border-radius: 6px; margin-bottom: 12px; }
+    .modal h2 { margin-bottom: 8px; font-size: 18px; }
+    .modal p { font-size: 13px; color: #ccc; line-height: 1.5; }
+    .modal .meta { font-size: 12px; color: #888; margin-top: 8px; }
+    #loading { text-align: center; padding: 40px; color: #888; }
+  </style>
 </head>
 <body>
-  <h1>Hoş geldin {{ session["user"] }}</h1>
-  <a href="{{ url_for('auth.logout') }}">Çıkış</a>
+
+  <header>
+    <h1>🎬 Dizi Kutusu</h1>
+    <div>
+      <span style="margin-right:12px; color:#aaa;">{{ session["user"] }}</span>
+      <a href="{{ url_for('auth.logout') }}">Çıkış</a>
+    </div>
+  </header>
+
+  <div class="search">
+    <input type="text" id="searchInput" placeholder="Dizi ara..." />
+  </div>
+
+  <div id="loading">Diziler yükleniyor...</div>
+  <div class="grid" id="grid"></div>
+
+  <!-- Detay Modal -->
+  <div class="overlay" id="overlay">
+    <div class="modal">
+      <span class="close" id="closeModal">&times;</span>
+      <img id="modalImg" src="" alt="" />
+      <h2 id="modalTitle"></h2>
+      <p id="modalDesc"></p>
+      <div class="meta">
+        <span id="modalMeta"></span>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    let allSeries = [];
+
+    // API'den dizileri çek
+    fetch("/api/series")
+      .then(r => r.json())
+      .then(data => {
+        allSeries = data;
+        document.getElementById("loading").style.display = "none";
+        renderCards(allSeries);
+      });
+
+    function renderCards(list) {
+      const grid = document.getElementById("grid");
+      grid.innerHTML = "";
+      list.forEach(s => {
+        const card = document.createElement("div");
+        card.className = "card";
+        card.onclick = () => showDetail(s);
+        card.innerHTML = `
+          ${s.image_url 
+            ? `<img src="${s.image_url}" alt="${s.title}" />` 
+            : `<div class="no-img">Görsel yok</div>`}
+          <div class="info">
+            <h3 title="${s.title}">${s.title}</h3>
+            <span>${s.release_year || "?"} · ${s.genre || ""}</span>
+            ${s.rating ? `<span class="rating"> ⭐ ${s.rating}</span>` : ""}
+          </div>
+        `;
+        grid.appendChild(card);
+      });
+    }
+
+    // Arama
+    document.getElementById("searchInput").addEventListener("input", e => {
+      const q = e.target.value.toLowerCase();
+      renderCards(allSeries.filter(s => s.title.toLowerCase().includes(q)));
+    });
+
+    // Modal
+    function showDetail(s) {
+      document.getElementById("modalImg").src = s.image_url || "";
+      document.getElementById("modalImg").style.display = s.image_url ? "block" : "none";
+      document.getElementById("modalTitle").textContent = s.title;
+      document.getElementById("modalDesc").textContent = s.description || "Açıklama yok.";
+      document.getElementById("modalMeta").textContent = 
+        `${s.release_year || "?"} · ${s.genre || "Bilinmiyor"} · ${s.status || ""} · Puan: ${s.rating || "-"}`;
+      document.getElementById("overlay").classList.add("active");
+    }
+
+    document.getElementById("closeModal").onclick = () => {
+      document.getElementById("overlay").classList.remove("active");
+    };
+    document.getElementById("overlay").onclick = (e) => {
+      if (e.target === document.getElementById("overlay")) {
+        document.getElementById("overlay").classList.remove("active");
+      }
+    };
+  </script>
+
 </body>
 </html>

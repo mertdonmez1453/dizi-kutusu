@@ -2,6 +2,7 @@ from datetime import datetime
 from werkzeug.security import generate_password_hash, check_password_hash
 from app.db import db
 
+# MODEL: Users tablosunun SQLAlchemy ORM ile tanımlandığı sınıf. Diğer dosyalardaki veritabanı sorguları bu model üzerinden yapılır.
 class User(db.Model):
     __tablename__ = "users"
 
