@@ -19,7 +19,16 @@ header {
 
 header h1 { font-size: 22px; }
 header a { color: #e94560; text-decoration: none; }
-header .user-email { margin-right: 12px; color: #aaa; }
+
+.header-nav {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.header-nav .user-email { color: #aaa; font-size: 14px; }
+.header-nav .logout-link { opacity: 0.7; }
+.header-nav .logout-link:hover { opacity: 1; }
 
 /* Search & Filter bar */
 .filter-bar {

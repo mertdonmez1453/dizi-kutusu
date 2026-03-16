@@ -9,10 +9,12 @@
 {% block body %}
   <header>
     <h1>🎬 Dizi Kutusu</h1>
-    <div>
+    <nav class="header-nav">
+      <a href="{{ url_for('main.profile') }}">Profil</a>
+      <a href="{{ url_for('main.settings') }}">Ayarlar</a>
       <span class="user-email">{{ session["user"] }}</span>
-      <a href="{{ url_for('auth.logout') }}">Çıkış</a>
-    </div>
+      <a href="{{ url_for('auth.logout') }}" class="logout-link">Çıkış</a>
+    </nav>
   </header>
 
   <div class="filter-bar">

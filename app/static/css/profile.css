@@ -1,0 +1,176 @@
+/* profile.css — Profil & Ayarlar sayfaları */
+
+.back-link {
+  color: #e94560;
+  text-decoration: none;
+  font-size: 22px;
+}
+
+.back-link:hover { opacity: 0.8; }
+
+/* Profile */
+.profile-container {
+  display: flex;
+  justify-content: center;
+  padding: 40px 0;
+}
+
+.profile-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  background: #16213e;
+  border-radius: 14px;
+  padding: 40px 48px;
+  width: min(420px, 92vw);
+  gap: 18px;
+}
+
+.profile-avatar {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  background: #e94560;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 32px;
+  font-weight: 800;
+  color: #fff;
+}
+
+.profile-card h2 {
+  font-size: 20px;
+  word-break: break-all;
+}
+
+.profile-meta {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 8px;
+}
+
+.meta-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 14px;
+  background: rgba(255,255,255,0.05);
+  border-radius: 8px;
+}
+
+.meta-label {
+  font-size: 13px;
+  color: #aaa;
+}
+
+.meta-value {
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.profile-actions {
+  margin-top: 12px;
+  width: 100%;
+}
+
+.btn-settings {
+  display: block;
+  text-align: center;
+  padding: 12px;
+  background: rgba(255,255,255,0.08);
+  color: #eee;
+  border-radius: 10px;
+  text-decoration: none;
+  font-weight: 600;
+  font-size: 14px;
+  border: 1px solid rgba(255,255,255,0.1);
+  transition: background 0.2s;
+}
+
+.btn-settings:hover {
+  background: rgba(255,255,255,0.14);
+}
+
+/* Settings */
+.settings-container {
+  display: flex;
+  justify-content: center;
+  padding: 40px 0;
+}
+
+.settings-card {
+  background: #16213e;
+  border-radius: 14px;
+  padding: 36px 40px;
+  width: min(460px, 92vw);
+}
+
+.settings-card h2 {
+  font-size: 20px;
+  margin-bottom: 24px;
+}
+
+.settings-form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.settings-form label {
+  font-size: 13px;
+  color: #aaa;
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+
+.settings-form input {
+  width: 100%;
+  padding: 11px 12px;
+  border-radius: 8px;
+  border: 1px solid #333;
+  background: #1a1a2e;
+  color: #eee;
+  font-size: 14px;
+}
+
+.settings-form input:focus {
+  border-color: #e94560;
+  outline: none;
+}
+
+.field-group {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.btn-save {
+  padding: 12px;
+  background: #e94560;
+  color: #fff;
+  border: none;
+  border-radius: 10px;
+  font-weight: 700;
+  font-size: 15px;
+  cursor: pointer;
+  margin-top: 8px;
+  transition: opacity 0.2s;
+}
+
+.btn-save:hover { opacity: 0.85; }
+.btn-save:disabled { opacity: 0.5; cursor: not-allowed; }
+
+.settings-msg {
+  padding: 10px 14px;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  text-align: center;
+  display: none;
+}
+
+.settings-msg.success { display: block; background: #00c030; color: #07210f; }
+.settings-msg.error { display: block; background: #e94560; color: #fff; }

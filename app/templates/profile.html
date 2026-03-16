@@ -1,0 +1,72 @@
+{% extends "base.html" %}
+
+{% block title %}Dizi Kutusu — Profil{% endblock %}
+
+{% block head_css %}
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/profile.css') }}">
+{% endblock %}
+
+{% block body %}
+  <header>
+    <h1><a href="{{ url_for('main.index') }}" class="back-link">← Dizi Kutusu</a></h1>
+    <div>
+      <span class="user-email">{{ session["user"] }}</span>
+      <a href="{{ url_for('auth.logout') }}">Çıkış</a>
+    </div>
+  </header>
+
+  <div class="profile-container">
+    <div id="loading">Profil yükleniyor...</div>
+
+    <div class="profile-card" id="profileCard" style="display:none;">
+      <div class="profile-avatar" id="profileAvatar"></div>
+      <h2 id="profileEmail"></h2>
+      <div class="profile-meta">
+        <div class="meta-item">
+          <span class="meta-label">Kullanıcı ID</span>
+          <span class="meta-value" id="profileId"></span>
+        </div>
+        <div class="meta-item">
+          <span class="meta-label">Kayıt Tarihi</span>
+          <span class="meta-value" id="profileDate"></span>
+        </div>
+      </div>
+      <div class="profile-actions">
+        <a href="{{ url_for('main.settings') }}" class="btn-settings">Ayarlar</a>
+      </div>
+    </div>
+  </div>
+{% endblock %}
+
+{% block scripts %}
+  <script>
+    fetch("/api/profile")
+      .then(r => {
+        if (!r.ok) throw new Error(r.status);
+        return r.json();
+      })
+      .then(data => {
+        document.getElementById("loading").style.display = "none";
+        document.getElementById("profileCard").style.display = "flex";
+
+        document.getElementById("profileEmail").textContent = data.email;
+        document.getElementById("profileId").textContent = "#" + data.id;
+
+        const initials = data.email.charAt(0).toUpperCase();
+        document.getElementById("profileAvatar").textContent = initials;
+
+        const date = new Date(data.created_at);
+        document.getElementById("profileDate").textContent = date.toLocaleDateString("tr-TR", {
+          year: "numeric", month: "long", day: "numeric"
+        });
+      })
+      .catch(() => {
+        document.getElementById("loading").style.display = "none";
+        const el = document.createElement("div");
+        el.id = "load-error";
+        el.textContent = "Profil bilgisi yüklenirken bir hata oluştu.";
+        document.getElementById("profileCard").before(el);
+      });
+  </script>
+{% endblock %}

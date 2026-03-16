@@ -25,6 +25,18 @@ def series_detail(series_id):
     return render_template("series_detail.html", series_id=series_id)
 
 
+@main_bp.get("/profile")
+@login_required
+def profile():
+    return render_template("profile.html")
+
+
+@main_bp.get("/settings")
+@login_required
+def settings():
+    return render_template("settings.html")
+
+
 @main_bp.get("/users")
 @login_required
 def list_users():
