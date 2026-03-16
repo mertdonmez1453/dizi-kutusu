@@ -19,6 +19,12 @@ def index():
     return render_template("auth/main.html")
 
 
+@main_bp.get("/series/<int:series_id>")
+@login_required
+def series_detail(series_id):
+    return render_template("series_detail.html", series_id=series_id)
+
+
 @main_bp.get("/users")
 @login_required
 def list_users():

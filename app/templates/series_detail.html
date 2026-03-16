@@ -1,0 +1,83 @@
+{% extends "base.html" %}
+
+{% block title %}Dizi Kutusu — Detay{% endblock %}
+
+{% block head_css %}
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/detail.css') }}">
+{% endblock %}
+
+{% block body %}
+  <header>
+    <h1><a href="{{ url_for('main.index') }}" class="back-link">← Dizi Kutusu</a></h1>
+    <div>
+      <span class="user-email">{{ session["user"] }}</span>
+      <a href="{{ url_for('auth.logout') }}">Çıkış</a>
+    </div>
+  </header>
+
+  <div id="loading">Yükleniyor...</div>
+
+  <div class="detail" id="detail" style="display:none;">
+    <div class="detail-top">
+      <img id="detailImg" class="detail-poster" src="" alt="" />
+      <div class="detail-info">
+        <h2 id="detailTitle"></h2>
+        <div class="detail-meta" id="detailMeta"></div>
+        <div class="detail-rating" id="detailRating"></div>
+        <p class="detail-desc" id="detailDesc"></p>
+        <a id="detailTrailer" class="btn-trailer" href="#" target="_blank" rel="noopener" style="display:none;">Fragmanı İzle</a>
+      </div>
+    </div>
+  </div>
+{% endblock %}
+
+{% block scripts %}
+  <script>
+    const seriesId = {{ series_id }};
+
+    fetch(`/api/series/${seriesId}`)
+      .then(r => {
+        if (!r.ok) throw new Error(r.status);
+        return r.json();
+      })
+      .then(s => {
+        document.getElementById("loading").style.display = "none";
+        document.getElementById("detail").style.display = "block";
+
+        document.title = `${s.title} — Dizi Kutusu`;
+
+        const img = document.getElementById("detailImg");
+        if (s.image_url) { img.src = s.image_url; img.alt = s.title; }
+        else img.style.display = "none";
+
+        document.getElementById("detailTitle").textContent = s.title;
+        document.getElementById("detailDesc").textContent = s.description || "Açıklama bulunmuyor.";
+
+        const parts = [];
+        if (s.release_year) parts.push(s.release_year);
+        if (s.genre) parts.push(s.genre);
+        if (s.status) parts.push(s.status);
+        if (s.number_of_seasons) parts.push(s.number_of_seasons + " Sezon");
+        if (s.number_of_episodes) parts.push(s.number_of_episodes + " Bölüm");
+        document.getElementById("detailMeta").textContent = parts.join(" · ");
+
+        if (s.rating) {
+          document.getElementById("detailRating").textContent = "⭐ " + s.rating + " / 10";
+        }
+
+        if (s.trailer_url) {
+          const link = document.getElementById("detailTrailer");
+          link.href = s.trailer_url;
+          link.style.display = "inline-flex";
+        }
+      })
+      .catch(() => {
+        document.getElementById("loading").style.display = "none";
+        const el = document.createElement("div");
+        el.id = "load-error";
+        el.textContent = "Dizi bilgisi yüklenirken bir hata oluştu.";
+        document.getElementById("detail").before(el);
+      });
+  </script>
+{% endblock %}

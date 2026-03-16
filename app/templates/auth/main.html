@@ -25,17 +25,6 @@
   <div id="loading">Diziler yükleniyor...</div>
   <div class="grid" id="grid"></div>
 
-  <div class="overlay" id="overlay">
-    <div class="modal">
-      <span class="close" id="closeModal">&times;</span>
-      <img id="modalImg" src="" alt="" />
-      <h2 id="modalTitle"></h2>
-      <p id="modalDesc"></p>
-      <div class="meta">
-        <span id="modalMeta"></span>
-      </div>
-    </div>
-  </div>
 {% endblock %}
 
 {% block scripts %}
@@ -84,7 +73,7 @@
       list.forEach(s => {
         const card = document.createElement("div");
         card.className = "card";
-        card.onclick = () => showDetail(s);
+        card.onclick = () => { window.location.href = `/series/${s.id}`; };
         card.innerHTML = `
           ${s.image_url
             ? `<img src="${esc(s.image_url)}" alt="${esc(s.title)}" />`
@@ -111,23 +100,5 @@
     document.getElementById("searchInput").addEventListener("input", applyFilters);
     document.getElementById("genreFilter").addEventListener("change", applyFilters);
 
-    function showDetail(s) {
-      document.getElementById("modalImg").src = s.image_url || "";
-      document.getElementById("modalImg").style.display = s.image_url ? "block" : "none";
-      document.getElementById("modalTitle").textContent = s.title;
-      document.getElementById("modalDesc").textContent = s.description || "Açıklama yok.";
-      document.getElementById("modalMeta").textContent =
-        `${s.release_year || "?"} · ${s.genre || "Bilinmiyor"} · ${s.status || ""} · Puan: ${s.rating || "-"}`;
-      document.getElementById("overlay").classList.add("active");
-    }
-
-    document.getElementById("closeModal").onclick = () => {
-      document.getElementById("overlay").classList.remove("active");
-    };
-    document.getElementById("overlay").onclick = (e) => {
-      if (e.target === document.getElementById("overlay")) {
-        document.getElementById("overlay").classList.remove("active");
-      }
-    };
   </script>
 {% endblock %}
