@@ -10,7 +10,7 @@ def create_app():
 
     db.init_app(app)
 
-    from app.models import User, Series
+    from app.models import User, Series, Watchlist, Review, Favorite, Episode
 
     from .routes.health import health_bp
     app.register_blueprint(health_bp)
@@ -23,5 +23,21 @@ def create_app():
 
     from .routes.series import series_bp
     app.register_blueprint(series_bp)
+
+    from .routes.watchlist import watchlist_bp
+    app.register_blueprint(watchlist_bp)
+
+    from .routes.review import review_bp
+    app.register_blueprint(review_bp)
+
+    from .routes.favorite import favorite_bp
+    app.register_blueprint(favorite_bp)
+
+    from .routes.episode import episode_bp
+    app.register_blueprint(episode_bp)
+
+    # Uygulama başlarken tüm tabloları oluştur (yoksa oluşturur, varsa değiştirmez)
+    with app.app_context():
+        db.create_all()
 
     return app
