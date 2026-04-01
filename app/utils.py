@@ -27,3 +27,22 @@ def login_required(f):
         g.current_user = user
         return f(*args, **kwargs)
     return decorated_function
+
+
+def admin_required(f):
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        if "user" not in session:
+            return _unauthorized_response()
+
+        user = User.query.filter_by(email=session["user"]).first()
+        if user is None:
+            session.pop("user", None)
+            return _unauthorized_response()
+
+        if not user.is_admin:
+            return jsonify({"error": "Bu işlem için admin yetkisi gerekiyor."}), 403
+
+        g.current_user = user
+        return f(*args, **kwargs)
+    return decorated_function

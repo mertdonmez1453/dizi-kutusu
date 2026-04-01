@@ -1,6 +1,6 @@
 # Ana sayfa. Giriş yaptıktan sonra buraya gelir.
 
-from flask import Blueprint, render_template, redirect, url_for
+from flask import Blueprint, render_template, redirect, url_for, flash, g
 from app.utils import login_required
 
 
@@ -49,4 +49,7 @@ def settings():
 @main_bp.get("/admin")
 @login_required
 def admin():
+    if not g.current_user.is_admin:
+        flash("Bu sayfaya erişim yetkiniz yok.", "error")
+        return redirect(url_for("main.index"))
     return render_template("admin.html")
