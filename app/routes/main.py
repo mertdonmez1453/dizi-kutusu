@@ -12,6 +12,16 @@ def root():
     return redirect(url_for("auth.login"))
 
 
+@main_bp.get("/forgot-password")
+def forgot_password():
+    return render_template("auth/forgot_password.html")
+
+
+@main_bp.get("/reset-password")
+def reset_password():
+    return render_template("auth/reset_password.html")
+
+
 @main_bp.get("/main")
 @login_required
 def index():
@@ -34,3 +44,9 @@ def profile():
 @login_required
 def settings():
     return render_template("settings.html")
+
+
+@main_bp.get("/admin")
+@login_required
+def admin():
+    return render_template("admin.html")

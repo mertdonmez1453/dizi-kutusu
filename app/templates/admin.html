@@ -1,0 +1,347 @@
+{% extends "base.html" %}
+
+{% block title %}Dizi Kutusu — Admin{% endblock %}
+
+{% block head_css %}
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/admin.css') }}">
+{% endblock %}
+
+{% block body %}
+  <header>
+    <h1><a href="{{ url_for('main.index') }}" class="back-link">← Dizi Kutusu</a></h1>
+    <div>
+      <span class="user-email">{{ session["user"] }} (Admin)</span>
+      <a href="{{ url_for('auth.logout') }}">Çıkış</a>
+    </div>
+  </header>
+
+  <div class="admin-container">
+    <h2 class="admin-title">Admin Paneli</h2>
+
+    <!-- Tabs -->
+    <div class="admin-tabs">
+      <button class="tab active" data-tab="stats">İstatistikler</button>
+      <button class="tab" data-tab="users">Kullanıcılar</button>
+      <button class="tab" data-tab="series">Diziler</button>
+      <button class="tab" data-tab="reviews">Yorumlar</button>
+    </div>
+
+    <!-- Tab: İstatistikler -->
+    <div class="tab-content active" id="tab-stats">
+      <div class="admin-stats" id="adminStats">
+        <p class="loading-text">Yükleniyor...</p>
+      </div>
+    </div>
+
+    <!-- Tab: Kullanıcılar -->
+    <div class="tab-content" id="tab-users">
+      <div class="admin-table-wrap">
+        <table class="admin-table" id="usersTable">
+          <thead>
+            <tr><th>ID</th><th>Email</th><th>Admin</th><th>Kayıt Tarihi</th><th></th></tr>
+          </thead>
+          <tbody id="usersBody">
+            <tr><td colspan="5" class="loading-text">Yükleniyor...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Tab: Diziler -->
+    <div class="tab-content" id="tab-series">
+      <button class="btn-admin-action" id="btnAddSeries">+ Yeni Dizi Ekle</button>
+
+      <!-- Dizi Ekleme/Düzenleme Formu -->
+      <div class="admin-form-wrap" id="seriesFormWrap" style="display:none;">
+        <h3 id="seriesFormTitle">Yeni Dizi Ekle</h3>
+        <form id="seriesForm" class="admin-form">
+          <input type="hidden" id="seriesEditId" value="">
+          <div class="admin-form-grid">
+            <div class="field-group">
+              <label for="sTitle">Başlık</label>
+              <input id="sTitle" type="text" required>
+            </div>
+            <div class="field-group">
+              <label for="sGenre">Tür</label>
+              <input id="sGenre" type="text" placeholder="Drama, Comedy...">
+            </div>
+            <div class="field-group">
+              <label for="sYear">Yıl</label>
+              <input id="sYear" type="number" min="1900" max="2100">
+            </div>
+            <div class="field-group">
+              <label for="sRating">Puan</label>
+              <input id="sRating" type="number" step="0.1" min="0" max="10">
+            </div>
+            <div class="field-group">
+              <label for="sSeasons">Sezon</label>
+              <input id="sSeasons" type="number" min="0">
+            </div>
+            <div class="field-group">
+              <label for="sEpisodes">Bölüm</label>
+              <input id="sEpisodes" type="number" min="0">
+            </div>
+            <div class="field-group">
+              <label for="sStatus">Durum</label>
+              <input id="sStatus" type="text" placeholder="Running, Ended...">
+            </div>
+            <div class="field-group">
+              <label for="sImage">Görsel URL</label>
+              <input id="sImage" type="url">
+            </div>
+            <div class="field-group">
+              <label for="sTrailer">Fragman URL</label>
+              <input id="sTrailer" type="url">
+            </div>
+          </div>
+          <div class="field-group" style="margin-top:12px;">
+            <label for="sDesc">Açıklama</label>
+            <textarea id="sDesc" rows="3"></textarea>
+          </div>
+          <div class="admin-form-actions">
+            <button type="submit" class="btn-admin-save">Kaydet</button>
+            <button type="button" class="btn-admin-cancel" id="btnCancelSeries">İptal</button>
+          </div>
+        </form>
+      </div>
+
+      <div class="admin-table-wrap">
+        <table class="admin-table" id="seriesTable">
+          <thead>
+            <tr><th>ID</th><th>Başlık</th><th>Tür</th><th>Yıl</th><th>Puan</th><th></th></tr>
+          </thead>
+          <tbody id="seriesBody">
+            <tr><td colspan="6" class="loading-text">Yükleniyor...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Tab: Yorumlar -->
+    <div class="tab-content" id="tab-reviews">
+      <div class="admin-table-wrap">
+        <table class="admin-table" id="reviewsTable">
+          <thead>
+            <tr><th>ID</th><th>Kullanıcı</th><th>Dizi</th><th>Puan</th><th>Yorum</th><th></th></tr>
+          </thead>
+          <tbody id="reviewsBody">
+            <tr><td colspan="6" class="loading-text">Yükleniyor...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+{% endblock %}
+
+{% block scripts %}
+  <script>
+    function esc(str) {
+      const d = document.createElement("div");
+      d.textContent = str;
+      return d.innerHTML;
+    }
+
+    /* ── Tabs ── */
+    document.querySelectorAll(".tab").forEach(tab => {
+      tab.addEventListener("click", () => {
+        document.querySelectorAll(".tab").forEach(t => t.classList.remove("active"));
+        document.querySelectorAll(".tab-content").forEach(c => c.classList.remove("active"));
+        tab.classList.add("active");
+        document.getElementById("tab-" + tab.dataset.tab).classList.add("active");
+      });
+    });
+
+    /* ── Stats ── */
+    fetch("/api/admin/stats")
+      .then(r => { if (!r.ok) throw new Error(); return r.json(); })
+      .then(data => {
+        const el = document.getElementById("adminStats");
+        el.innerHTML = "";
+        const items = [
+          { label: "Toplam Kullanıcı", value: data.total_users || 0 },
+          { label: "Toplam Dizi", value: data.total_series || 0 },
+          { label: "Toplam Yorum", value: data.total_reviews || 0 },
+          { label: "Toplam Watchlist", value: data.total_watchlist || 0 }
+        ];
+        items.forEach(item => {
+          const div = document.createElement("div");
+          div.className = "admin-stat-card";
+          div.innerHTML = `<span class="admin-stat-value">${item.value}</span><span class="admin-stat-label">${item.label}</span>`;
+          el.appendChild(div);
+        });
+      })
+      .catch(() => {
+        document.getElementById("adminStats").innerHTML = '<p class="error-text">İstatistikler yüklenemedi.</p>';
+      });
+
+    /* ── Users ── */
+    function loadUsers() {
+      fetch("/api/admin/users")
+        .then(r => { if (!r.ok) throw new Error(); return r.json(); })
+        .then(users => {
+          const tbody = document.getElementById("usersBody");
+          tbody.innerHTML = "";
+          users.forEach(u => {
+            const tr = document.createElement("tr");
+            tr.innerHTML = `
+              <td>${u.id}</td>
+              <td>${esc(u.email)}</td>
+              <td>${u.is_admin ? "Evet" : "Hayır"}</td>
+              <td>${new Date(u.created_at).toLocaleDateString("tr-TR")}</td>
+              <td><button class="btn-table-delete" data-id="${u.id}">Sil</button></td>
+            `;
+            tr.querySelector(".btn-table-delete").addEventListener("click", () => deleteUser(u.id, u.email));
+            tbody.appendChild(tr);
+          });
+        })
+        .catch(() => {
+          document.getElementById("usersBody").innerHTML = '<tr><td colspan="5" class="error-text">Yüklenemedi.</td></tr>';
+        });
+    }
+
+    function deleteUser(id, email) {
+      if (!confirm(`"${email}" kullanıcısını silmek istediğine emin misin?`)) return;
+      fetch(`/api/admin/users/${id}`, { method: "DELETE" })
+        .then(r => { if (!r.ok) throw new Error(); loadUsers(); })
+        .catch(() => {});
+    }
+
+    loadUsers();
+
+    /* ── Series ── */
+    const seriesFormWrap = document.getElementById("seriesFormWrap");
+    const seriesForm = document.getElementById("seriesForm");
+    let editingSeriesId = null;
+
+    document.getElementById("btnAddSeries").addEventListener("click", () => {
+      editingSeriesId = null;
+      document.getElementById("seriesFormTitle").textContent = "Yeni Dizi Ekle";
+      seriesForm.reset();
+      seriesFormWrap.style.display = "block";
+    });
+
+    document.getElementById("btnCancelSeries").addEventListener("click", () => {
+      seriesFormWrap.style.display = "none";
+      seriesForm.reset();
+      editingSeriesId = null;
+    });
+
+    seriesForm.addEventListener("submit", e => {
+      e.preventDefault();
+      const body = {
+        title: document.getElementById("sTitle").value.trim(),
+        description: document.getElementById("sDesc").value.trim(),
+        genre: document.getElementById("sGenre").value.trim() || null,
+        release_year: parseInt(document.getElementById("sYear").value) || null,
+        rating: parseFloat(document.getElementById("sRating").value) || null,
+        number_of_seasons: parseInt(document.getElementById("sSeasons").value) || null,
+        number_of_episodes: parseInt(document.getElementById("sEpisodes").value) || null,
+        status: document.getElementById("sStatus").value.trim() || null,
+        image_url: document.getElementById("sImage").value.trim() || null,
+        trailer_url: document.getElementById("sTrailer").value.trim() || null
+      };
+
+      const url = editingSeriesId ? `/api/admin/series/${editingSeriesId}` : "/api/admin/series";
+      const method = editingSeriesId ? "PUT" : "POST";
+
+      fetch(url, {
+        method,
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body)
+      })
+        .then(r => { if (!r.ok) throw new Error(); seriesFormWrap.style.display = "none"; seriesForm.reset(); editingSeriesId = null; loadSeries(); })
+        .catch(() => {});
+    });
+
+    function loadSeries() {
+      fetch("/api/series/")
+        .then(r => { if (!r.ok) throw new Error(); return r.json(); })
+        .then(list => {
+          const tbody = document.getElementById("seriesBody");
+          tbody.innerHTML = "";
+          list.forEach(s => {
+            const tr = document.createElement("tr");
+            tr.innerHTML = `
+              <td>${s.id}</td>
+              <td>${esc(s.title)}</td>
+              <td>${esc(s.genre || "-")}</td>
+              <td>${s.release_year || "-"}</td>
+              <td>${s.rating || "-"}</td>
+              <td class="table-actions">
+                <button class="btn-table-edit" data-id="${s.id}">Düzenle</button>
+                <button class="btn-table-delete" data-id="${s.id}">Sil</button>
+              </td>
+            `;
+            tr.querySelector(".btn-table-edit").addEventListener("click", () => startEditSeries(s));
+            tr.querySelector(".btn-table-delete").addEventListener("click", () => deleteSeries(s.id, s.title));
+            tbody.appendChild(tr);
+          });
+        })
+        .catch(() => {
+          document.getElementById("seriesBody").innerHTML = '<tr><td colspan="6" class="error-text">Yüklenemedi.</td></tr>';
+        });
+    }
+
+    function startEditSeries(s) {
+      editingSeriesId = s.id;
+      document.getElementById("seriesFormTitle").textContent = "Dizi Düzenle: " + s.title;
+      document.getElementById("sTitle").value = s.title || "";
+      document.getElementById("sDesc").value = s.description || "";
+      document.getElementById("sGenre").value = s.genre || "";
+      document.getElementById("sYear").value = s.release_year || "";
+      document.getElementById("sRating").value = s.rating || "";
+      document.getElementById("sSeasons").value = s.number_of_seasons || "";
+      document.getElementById("sEpisodes").value = s.number_of_episodes || "";
+      document.getElementById("sStatus").value = s.status || "";
+      document.getElementById("sImage").value = s.image_url || "";
+      document.getElementById("sTrailer").value = s.trailer_url || "";
+      seriesFormWrap.style.display = "block";
+      seriesFormWrap.scrollIntoView({ behavior: "smooth" });
+    }
+
+    function deleteSeries(id, title) {
+      if (!confirm(`"${title}" dizisini silmek istediğine emin misin?`)) return;
+      fetch(`/api/admin/series/${id}`, { method: "DELETE" })
+        .then(r => { if (!r.ok) throw new Error(); loadSeries(); })
+        .catch(() => {});
+    }
+
+    loadSeries();
+
+    /* ── Reviews ── */
+    function loadReviews() {
+      fetch("/api/admin/reviews")
+        .then(r => { if (!r.ok) throw new Error(); return r.json(); })
+        .then(reviews => {
+          const tbody = document.getElementById("reviewsBody");
+          tbody.innerHTML = "";
+          reviews.forEach(r => {
+            const tr = document.createElement("tr");
+            tr.innerHTML = `
+              <td>${r.id}</td>
+              <td>${esc(r.email || r.user_email || "-")}</td>
+              <td>${esc(r.series_title || "-")}</td>
+              <td>${r.rating || "-"}</td>
+              <td class="review-text-cell">${esc(r.comment || r.text || "-")}</td>
+              <td><button class="btn-table-delete" data-id="${r.id}">Sil</button></td>
+            `;
+            tr.querySelector(".btn-table-delete").addEventListener("click", () => deleteReview(r.id));
+            tbody.appendChild(tr);
+          });
+        })
+        .catch(() => {
+          document.getElementById("reviewsBody").innerHTML = '<tr><td colspan="6" class="error-text">Yüklenemedi.</td></tr>';
+        });
+    }
+
+    function deleteReview(id) {
+      if (!confirm("Bu yorumu silmek istediğine emin misin?")) return;
+      fetch(`/api/admin/reviews/${id}`, { method: "DELETE" })
+        .then(r => { if (!r.ok) throw new Error(); loadReviews(); })
+        .catch(() => {});
+    }
+
+    loadReviews();
+  </script>
+{% endblock %}
