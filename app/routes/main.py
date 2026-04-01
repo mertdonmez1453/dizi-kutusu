@@ -1,7 +1,6 @@
 # Ana sayfa. Giriş yaptıktan sonra buraya gelir.
 
-from flask import Blueprint, render_template, redirect, url_for, jsonify
-from app.models.user import User
+from flask import Blueprint, render_template, redirect, url_for
 from app.utils import login_required
 
 
@@ -35,20 +34,3 @@ def profile():
 @login_required
 def settings():
     return render_template("settings.html")
-
-
-@main_bp.get("/users")
-@login_required
-def list_users():
-    # QUERY: Veritabanındaki tüm kullanıcıları liste halinde getirir (List All Users Query)
-    users = User.query.all()
-
-    result = []
-    for u in users:
-        result.append({
-            "id": u.id,
-            "email": u.email,
-            "created_at": u.created_at
-        })
-
-    return jsonify(result)

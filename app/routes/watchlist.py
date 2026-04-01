@@ -42,34 +42,6 @@ def get_watchlist():
     return jsonify(result)
 
 
-# QUERY: İzleme listesine yeni dizi ekler (INSERT)
-@watchlist_bp.post("/add")
-def add_to_watchlist():
-    user = get_current_user()
-    if not user:
-        return jsonify({"error": "Giriş yapmalısınız"}), 401
-
-    data = request.get_json()
-    series_id = data.get("series_id")
-    status = data.get("status", "plan_to_watch")
-
-    # Dizi var mı kontrol et
-    series = Series.query.get(series_id)
-    if not series:
-        return jsonify({"error": "Dizi bulunamadı"}), 404
-
-    # Zaten listede mi kontrol et
-    existing = Watchlist.query.filter_by(user_id=user.id, series_id=series_id).first()
-    if existing:
-        return jsonify({"error": "Bu dizi zaten listenizde"}), 409
-
-    new_item = Watchlist(user_id=user.id, series_id=series_id, status=status)
-    db.session.add(new_item)
-    db.session.commit()
-
-    return jsonify({"message": f"'{series.title}' izleme listesine eklendi"}), 201
-
-
 # QUERY: İzleme listesindeki bir dizinin durumunu günceller (UPDATE)
 @watchlist_bp.put("/update/<int:item_id>")
 def update_watchlist_status(item_id):
@@ -92,23 +64,6 @@ def update_watchlist_status(item_id):
     db.session.commit()
 
     return jsonify({"message": f"Durum '{new_status}' olarak güncellendi"})
-
-
-# QUERY: İzleme listesinden bir diziyi siler (DELETE)
-@watchlist_bp.delete("/remove/<int:item_id>")
-def remove_from_watchlist(item_id):
-    user = get_current_user()
-    if not user:
-        return jsonify({"error": "Giriş yapmalısınız"}), 401
-
-    item = Watchlist.query.filter_by(id=item_id, user_id=user.id).first()
-    if not item:
-        return jsonify({"error": "Kayıt bulunamadı"}), 404
-
-    db.session.delete(item)
-    db.session.commit()
-
-    return jsonify({"message": "Dizi izleme listesinden kaldırıldı"})
 
 
 # ── Frontend-uyumlu endpoint'ler (series_id bazlı) ──
