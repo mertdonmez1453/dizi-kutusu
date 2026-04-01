@@ -1,10 +1,11 @@
 # WATCHLIST ROUTES: Kullanıcının izleme listesiyle ilgili tüm API endpoint'leri burada tanımlanır.
 
-from flask import Blueprint, jsonify, request, session
+from flask import Blueprint, jsonify, request, session, g
 from app.db import db
 from app.models.user import User
 from app.models.series import Series
 from app.models.watchlist import Watchlist
+from app.utils import login_required
 
 watchlist_bp = Blueprint("watchlist", __name__, url_prefix="/api/watchlist")
 
@@ -108,3 +109,48 @@ def remove_from_watchlist(item_id):
     db.session.commit()
 
     return jsonify({"message": "Dizi izleme listesinden kaldırıldı"})
+
+
+# ── Frontend-uyumlu endpoint'ler (series_id bazlı) ──
+
+@watchlist_bp.get("/<int:series_id>")
+@login_required
+def check_watchlist(series_id):
+    user = g.current_user
+    item = Watchlist.query.filter_by(user_id=user.id, series_id=series_id).first()
+    return jsonify({
+        "in_watchlist": item is not None,
+        "status": item.status if item else None
+    })
+
+
+@watchlist_bp.post("/<int:series_id>")
+@login_required
+def add_to_watchlist_by_series(series_id):
+    Series.query.get_or_404(series_id)
+    user = g.current_user
+
+    existing = Watchlist.query.filter_by(user_id=user.id, series_id=series_id).first()
+    if existing:
+        return jsonify({"error": "Bu dizi zaten listenizde."}), 409
+
+    new_item = Watchlist(user_id=user.id, series_id=series_id, status="plan_to_watch")
+    db.session.add(new_item)
+    db.session.commit()
+
+    return jsonify({"message": "İzleme listesine eklendi."}), 201
+
+
+@watchlist_bp.delete("/<int:series_id>")
+@login_required
+def remove_from_watchlist_by_series(series_id):
+    user = g.current_user
+    item = Watchlist.query.filter_by(user_id=user.id, series_id=series_id).first()
+
+    if not item:
+        return jsonify({"error": "Bu dizi listenizde değil."}), 404
+
+    db.session.delete(item)
+    db.session.commit()
+
+    return jsonify({"message": "İzleme listesinden kaldırıldı."})
