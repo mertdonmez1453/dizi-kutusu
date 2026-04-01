@@ -91,6 +91,22 @@
 .btn-watchlist:hover { background: #1a4a7a; }
 .btn-watchlist.in-list { background: #00c030; color: #07210f; border-color: #00c030; }
 
+.status-select {
+  padding: 10px 14px;
+  background: #0f3460;
+  color: #eee;
+  border: 1px solid #333;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.status-select:focus {
+  border-color: #e94560;
+  outline: none;
+}
+
 /* Star rating */
 .user-rating {
   display: flex;
@@ -199,11 +215,78 @@
   color: #666;
 }
 
-.comment p {
+.comment-header-right {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.comment-action {
+  background: none;
+  border: none;
+  font-size: 12px;
+  cursor: pointer;
+  font-weight: 600;
+  padding: 2px 6px;
+  border-radius: 4px;
+  transition: background 0.15s;
+}
+
+.btn-edit { color: #00d1ff; }
+.btn-edit:hover { background: rgba(0,209,255,0.12); }
+
+.btn-delete { color: #e94560; }
+.btn-delete:hover { background: rgba(233,69,96,0.12); }
+
+.comment-rating {
+  font-size: 13px;
+  color: #f5c518;
+  display: block;
+  margin-bottom: 4px;
+}
+
+.comment-text {
   font-size: 14px;
   color: #ccc;
   line-height: 1.5;
 }
+
+.edit-form {
+  margin-top: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.edit-textarea {
+  width: 100%;
+  padding: 10px;
+  border-radius: 6px;
+  border: 1px solid #333;
+  background: #1a1a2e;
+  color: #eee;
+  font-size: 14px;
+  font-family: inherit;
+  resize: vertical;
+  min-height: 60px;
+}
+
+.edit-textarea:focus {
+  border-color: #e94560;
+  outline: none;
+}
+
+.edit-actions {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+}
+
+.btn-save-edit { color: #00c030; }
+.btn-save-edit:hover { background: rgba(0,192,48,0.12); }
+
+.btn-cancel-edit { color: #aaa; }
+.btn-cancel-edit:hover { background: rgba(255,255,255,0.08); }
 
 /* Responsive */
 @media (max-width: 640px) {

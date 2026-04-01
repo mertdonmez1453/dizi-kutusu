@@ -30,6 +30,13 @@
 
         <div class="action-row">
           <button class="btn-watchlist" id="btnWatchlist">+ Listeme Ekle</button>
+          <select class="status-select" id="statusSelect" style="display:none;">
+            <option value="" disabled selected>Durum seç...</option>
+            <option value="watching">İzliyorum</option>
+            <option value="completed">İzledim</option>
+            <option value="plan_to_watch">İzleyeceğim</option>
+            <option value="dropped">Bıraktım</option>
+          </select>
           <div class="user-rating" id="userRating">
             <span class="rating-label">Puanla:</span>
             <div class="stars" id="stars"></div>
@@ -138,32 +145,58 @@
         .catch(() => { /* Backend henüz hazır değil */ });
     }
 
-    /* ── Watchlist ── */
+    /* ── Watchlist + Status ── */
     let inWatchlist = false;
     const btnW = document.getElementById("btnWatchlist");
+    const statusSel = document.getElementById("statusSelect");
+
+    const STATUS_LABELS = {
+      watching: "İzliyorum",
+      completed: "İzledim",
+      plan_to_watch: "İzleyeceğim",
+      dropped: "Bıraktım"
+    };
 
     function loadWatchlistStatus() {
       fetch(`/api/watchlist/${seriesId}`)
         .then(r => { if (!r.ok) throw new Error(); return r.json(); })
-        .then(data => { inWatchlist = data.in_watchlist; updateWatchlistBtn(); })
-        .catch(() => { /* Backend henüz hazır değil */ });
+        .then(data => {
+          inWatchlist = data.in_watchlist;
+          updateWatchlistUI();
+          if (data.status) statusSel.value = data.status;
+        })
+        .catch(() => {});
     }
 
-    function updateWatchlistBtn() {
+    function updateWatchlistUI() {
       btnW.textContent = inWatchlist ? "✓ Listemde" : "+ Listeme Ekle";
       btnW.classList.toggle("in-list", inWatchlist);
+      statusSel.style.display = inWatchlist ? "block" : "none";
     }
 
     btnW.addEventListener("click", () => {
       const method = inWatchlist ? "DELETE" : "POST";
       fetch(`/api/watchlist/${seriesId}`, { method })
-        .then(r => { if (!r.ok) throw new Error(); inWatchlist = !inWatchlist; updateWatchlistBtn(); })
-        .catch(() => { /* Backend henüz hazır değil */ });
+        .then(r => { if (!r.ok) throw new Error(); inWatchlist = !inWatchlist; updateWatchlistUI(); })
+        .catch(() => {});
+    });
+
+    statusSel.addEventListener("change", () => {
+      const status = statusSel.value;
+      fetch(`/api/watchlist/${seriesId}/status`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ status })
+      })
+        .then(r => { if (!r.ok) throw new Error(); })
+        .catch(() => {});
     });
 
     loadWatchlistStatus();
 
     /* ── Yorumlar ── */
+    const currentUser = "{{ session['user'] }}";
+
     function loadComments() {
       fetch(`/api/series/${seriesId}/comments`)
         .then(r => { if (!r.ok) throw new Error(); return r.json(); })
@@ -174,17 +207,79 @@
           comments.forEach(c => {
             const div = document.createElement("div");
             div.className = "comment";
+            const isOwner = c.email === currentUser;
+            const dateStr = new Date(c.created_at).toLocaleDateString("tr-TR");
+
             div.innerHTML = `
               <div class="comment-header">
                 <strong>${escapeHtml(c.email || "Anonim")}</strong>
-                <span class="comment-date">${new Date(c.created_at).toLocaleDateString("tr-TR")}</span>
+                <div class="comment-header-right">
+                  <span class="comment-date">${dateStr}</span>
+                  ${isOwner ? `
+                    <button class="comment-action btn-edit" data-id="${c.id}">Düzenle</button>
+                    <button class="comment-action btn-delete" data-id="${c.id}">Sil</button>
+                  ` : ""}
+                </div>
               </div>
-              <p>${escapeHtml(c.text)}</p>
+              ${c.rating ? `<span class="comment-rating">⭐ ${c.rating}/10</span>` : ""}
+              <p class="comment-text" data-id="${c.id}">${escapeHtml(c.text || c.comment || "")}</p>
             `;
+
+            if (isOwner) {
+              div.querySelector(".btn-edit").addEventListener("click", () => startEdit(c));
+              div.querySelector(".btn-delete").addEventListener("click", () => deleteComment(c.id));
+            }
+
             list.appendChild(div);
           });
         })
-        .catch(() => { /* Backend henüz hazır değil */ });
+        .catch(() => {});
+    }
+
+    function startEdit(c) {
+      const textEl = document.querySelector(`.comment-text[data-id="${c.id}"]`);
+      const original = c.text || c.comment || "";
+      const parent = textEl.parentElement;
+
+      textEl.style.display = "none";
+
+      const form = document.createElement("div");
+      form.className = "edit-form";
+      form.innerHTML = `
+        <textarea class="edit-textarea">${escapeHtml(original)}</textarea>
+        <div class="edit-actions">
+          <button class="comment-action btn-save-edit">Kaydet</button>
+          <button class="comment-action btn-cancel-edit">İptal</button>
+        </div>
+      `;
+
+      parent.appendChild(form);
+
+      form.querySelector(".btn-cancel-edit").addEventListener("click", () => {
+        form.remove();
+        textEl.style.display = "";
+      });
+
+      form.querySelector(".btn-save-edit").addEventListener("click", () => {
+        const newText = form.querySelector(".edit-textarea").value.trim();
+        if (!newText) return;
+
+        fetch(`/api/reviews/update/${c.id}`, {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ rating: c.rating || null, comment: newText })
+        })
+          .then(r => { if (!r.ok) throw new Error(); loadComments(); })
+          .catch(() => {});
+      });
+    }
+
+    function deleteComment(id) {
+      if (!confirm("Bu yorumu silmek istediğine emin misin?")) return;
+
+      fetch(`/api/reviews/delete/${id}`, { method: "DELETE" })
+        .then(r => { if (!r.ok) throw new Error(); loadComments(); })
+        .catch(() => {});
     }
 
     function escapeHtml(str) {
@@ -208,7 +303,7 @@
           document.getElementById("commentText").value = "";
           loadComments();
         })
-        .catch(() => { /* Backend henüz hazır değil */ });
+        .catch(() => {});
     });
 
     loadComments();

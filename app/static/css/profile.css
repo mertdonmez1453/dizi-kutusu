@@ -1,10 +1,16 @@
 /* profile.css — Profil & Ayarlar sayfaları */
 
-/* Profile */
-.profile-container {
+/* Profile page layout */
+.profile-page {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 20px 0;
+}
+
+.profile-content {
   display: flex;
-  justify-content: center;
-  padding: 40px 0;
+  gap: 24px;
+  align-items: flex-start;
 }
 
 .profile-card {
@@ -14,8 +20,16 @@
   background: #16213e;
   border-radius: 14px;
   padding: 40px 48px;
-  width: min(420px, 92vw);
+  width: 320px;
+  min-width: 320px;
   gap: 18px;
+}
+
+.profile-sidebar {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
 }
 
 .profile-avatar {
@@ -84,6 +98,110 @@
 
 .btn-settings:hover {
   background: rgba(255,255,255,0.14);
+}
+
+/* Stats card */
+.stats-card, .activity-card {
+  background: #16213e;
+  border-radius: 14px;
+  padding: 24px;
+}
+
+.stats-card h3, .activity-card h3 {
+  font-size: 16px;
+  margin-bottom: 16px;
+  color: #eee;
+}
+
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+}
+
+.stat-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 12px 8px;
+  background: rgba(255,255,255,0.04);
+  border-radius: 10px;
+}
+
+.stat-value {
+  font-size: 24px;
+  font-weight: 800;
+}
+
+.stat-label {
+  font-size: 12px;
+  color: #aaa;
+}
+
+/* Activity list */
+.activity-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.no-activity {
+  color: #666;
+  font-size: 14px;
+  font-style: italic;
+}
+
+.activity-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 12px 14px;
+  background: rgba(255,255,255,0.04);
+  border-radius: 10px;
+}
+
+.activity-main {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 0;
+}
+
+.activity-main strong {
+  font-size: 14px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.activity-desc {
+  font-size: 13px;
+  color: #aaa;
+}
+
+.activity-date {
+  font-size: 12px;
+  color: #666;
+  white-space: nowrap;
+}
+
+/* Responsive profile */
+@media (max-width: 700px) {
+  .profile-content {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .profile-card {
+    width: 100%;
+    min-width: auto;
+  }
+
+  .stats-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
 }
 
 /* Settings */
