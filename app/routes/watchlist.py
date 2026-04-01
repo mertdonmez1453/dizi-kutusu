@@ -96,6 +96,31 @@ def add_to_watchlist_by_series(series_id):
     return jsonify({"message": "İzleme listesine eklendi."}), 201
 
 
+@watchlist_bp.put("/<int:series_id>/status")
+@login_required
+def update_status_by_series(series_id):
+    user = g.current_user
+    item = Watchlist.query.filter_by(user_id=user.id, series_id=series_id).first()
+
+    if not item:
+        return jsonify({"error": "Bu dizi listenizde değil."}), 404
+
+    data = request.get_json(silent=True)
+    if not data or "status" not in data:
+        return jsonify({"error": "Durum değeri gerekli."}), 400
+
+    valid_statuses = ["watching", "completed", "plan_to_watch", "dropped"]
+    new_status = data["status"]
+
+    if new_status not in valid_statuses:
+        return jsonify({"error": f"Geçersiz durum. Geçerli değerler: {valid_statuses}"}), 400
+
+    item.status = new_status
+    db.session.commit()
+
+    return jsonify({"message": f"Durum '{new_status}' olarak güncellendi.", "status": new_status})
+
+
 @watchlist_bp.delete("/<int:series_id>")
 @login_required
 def remove_from_watchlist_by_series(series_id):

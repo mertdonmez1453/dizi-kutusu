@@ -1,6 +1,8 @@
 from flask import Blueprint, request, jsonify, g
 from app.db import db
 from app.models.user import User
+from app.models.watchlist import Watchlist
+from app.models.review import Review
 from app.utils import login_required
 
 profile_bp = Blueprint("profile", __name__)
@@ -10,10 +12,39 @@ profile_bp = Blueprint("profile", __name__)
 @login_required
 def get_profile():
     user = g.current_user
+
+    watchlist_items = Watchlist.query.filter_by(user_id=user.id).all()
+    reviews = Review.query.filter_by(user_id=user.id).order_by(Review.created_at.desc()).limit(5).all()
+
+    status_counts = {"watching": 0, "completed": 0, "plan_to_watch": 0, "dropped": 0}
+    for item in watchlist_items:
+        if item.status in status_counts:
+            status_counts[item.status] += 1
+
+    recent_activity = []
+    for r in reviews:
+        activity = {
+            "series_id": r.series_id,
+            "series_title": r.series.title,
+            "rating": r.rating,
+            "comment": r.comment,
+            "created_at": r.created_at.isoformat()
+        }
+        recent_activity.append(activity)
+
     return jsonify({
         "id": user.id,
         "email": user.email,
-        "created_at": user.created_at.isoformat()
+        "created_at": user.created_at.isoformat(),
+        "stats": {
+            "total_watchlist": len(watchlist_items),
+            "watching": status_counts["watching"],
+            "completed": status_counts["completed"],
+            "plan_to_watch": status_counts["plan_to_watch"],
+            "dropped": status_counts["dropped"],
+            "total_reviews": Review.query.filter_by(user_id=user.id).count()
+        },
+        "recent_activity": recent_activity
     })
 
 
