@@ -46,6 +46,16 @@
       </div>
     </div>
 
+    <!-- İstatistikler -->
+    <section class="series-stats" id="seriesStats" style="display:none;">
+      <h3>İstatistikler</h3>
+      <div class="stats-summary" id="statsSummary"></div>
+      <div class="rating-chart">
+        <h4>Puan Dağılımı</h4>
+        <div class="chart-bars" id="chartBars"></div>
+      </div>
+    </section>
+
     <!-- Yorumlar -->
     <section class="comments-section">
       <h3>Yorumlar</h3>
@@ -109,6 +119,49 @@
         el.textContent = "Dizi bilgisi yüklenirken bir hata oluştu.";
         document.getElementById("detail").before(el);
       });
+
+    /* ── Series Stats ── */
+    fetch(`/api/series/${seriesId}/stats`)
+      .then(r => { if (!r.ok) throw new Error(); return r.json(); })
+      .then(data => {
+        document.getElementById("seriesStats").style.display = "block";
+
+        const summary = document.getElementById("statsSummary");
+        const items = [
+          { label: "İzleyici", value: data.total_watchers ?? data.watcher_count ?? "—" },
+          { label: "Ort. Puan", value: data.average_rating != null ? Number(data.average_rating).toFixed(1) : "—" },
+          { label: "Toplam Oy", value: data.total_ratings ?? data.rating_count ?? "—" },
+          { label: "Favori", value: data.favorite_count ?? "—" },
+          { label: "Yorum", value: data.review_count ?? data.comment_count ?? "—" }
+        ];
+        summary.innerHTML = items.map(i => `
+          <div class="stat-box">
+            <span class="stat-box-value">${escapeHtml(String(i.value))}</span>
+            <span class="stat-box-label">${escapeHtml(i.label)}</span>
+          </div>
+        `).join("");
+
+        const dist = data.rating_distribution || {};
+        const chartBars = document.getElementById("chartBars");
+        const maxCount = Math.max(1, ...Object.values(dist).map(Number));
+        chartBars.innerHTML = "";
+
+        for (let i = 1; i <= 10; i++) {
+          const count = Number(dist[i] || 0);
+          const pct = (count / maxCount) * 100;
+          const bar = document.createElement("div");
+          bar.className = "chart-bar-group";
+          bar.innerHTML = `
+            <span class="chart-label">${i}</span>
+            <div class="chart-track">
+              <div class="chart-fill" style="width:${pct}%"></div>
+            </div>
+            <span class="chart-count">${count}</span>
+          `;
+          chartBars.appendChild(bar);
+        }
+      })
+      .catch(() => {});
 
     /* ── Stars (1-10) ── */
     const starsContainer = document.getElementById("stars");
