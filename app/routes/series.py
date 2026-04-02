@@ -27,8 +27,7 @@ def _serialize_series(s):
 @series_bp.get("/")
 def get_all_series():
     query = Series.query.order_by(Series.rating.desc())
-    items, meta = paginate(query)
-    return jsonify({"items": [_serialize_series(s) for s in items], **meta})
+    return paginate(query, _serialize_series)
 
 
 @series_bp.get("/search")
@@ -50,8 +49,7 @@ def search_series():
         query = query.filter(Series.genre.ilike(f"%{genre}%"))
 
     query = query.order_by(Series.rating.desc())
-    items, meta = paginate(query)
-    return jsonify({"items": [_serialize_series(s) for s in items], **meta})
+    return paginate(query, _serialize_series)
 
 
 @series_bp.get("/<int:series_id>")
@@ -107,21 +105,16 @@ def get_comments(series_id):
         Review.comment != ""
     ).order_by(Review.created_at.desc())
 
-    items, meta = paginate(query)
+    def _serialize_comment(r):
+        return {
+            "id": r.id,
+            "email": r.user.email,
+            "text": r.comment,
+            "rating": r.rating,
+            "created_at": r.created_at.isoformat()
+        }
 
-    return jsonify({
-        "items": [
-            {
-                "id": r.id,
-                "email": r.user.email,
-                "text": r.comment,
-                "rating": r.rating,
-                "created_at": r.created_at.isoformat()
-            }
-            for r in items
-        ],
-        **meta
-    })
+    return paginate(query, _serialize_comment)
 
 
 @series_bp.post("/<int:series_id>/comments")

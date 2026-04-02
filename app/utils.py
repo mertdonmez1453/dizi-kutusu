@@ -3,22 +3,30 @@ from flask import session, redirect, url_for, g, request, jsonify
 from app.models.user import User
 
 
-def paginate(query, max_per_page=50):
-    """Bir SQLAlchemy sorgusuna sayfalama uygular ve standart response döner."""
-    page = request.args.get("page", 1, type=int)
-    per_page = request.args.get("per_page", 20, type=int)
+def paginate(query, serialize_fn, max_per_page=50, default_limit=50):
+    """
+    Sayfalama isteğe bağlıdır. ?page= parametresi varsa sayfalı format döner,
+    yoksa eski düz array formatını korur (geriye uyumluluk).
+    """
+    page_param = request.args.get("page", type=int)
 
-    page = max(1, page)
+    if page_param is None:
+        items = query.limit(default_limit).all()
+        return jsonify([serialize_fn(item) for item in items])
+
+    page = max(1, page_param)
+    per_page = request.args.get("per_page", 20, type=int)
     per_page = max(1, min(per_page, max_per_page))
 
     result = query.paginate(page=page, per_page=per_page, error_out=False)
 
-    return result.items, {
+    return jsonify({
+        "items": [serialize_fn(item) for item in result.items],
         "page": result.page,
         "per_page": result.per_page,
         "total": result.total,
         "pages": result.pages
-    }
+    })
 
 
 def _is_api_request():
