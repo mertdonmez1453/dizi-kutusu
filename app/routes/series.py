@@ -2,6 +2,7 @@ from flask import Blueprint, jsonify, request, g
 from app.db import db
 from app.models.series import Series
 from app.models.review import Review
+from app.models.watchlist import Watchlist
 from app.utils import login_required, paginate
 from sqlalchemy import func
 
@@ -73,6 +74,52 @@ def search_series():
     query = query.order_by(sort_options.get(sort_by, Series.rating.desc()))
 
     return paginate(query, _serialize_series)
+
+
+@series_bp.get("/top-rated")
+def top_rated_series():
+    limit = request.args.get("limit", 10, type=int)
+    limit = max(1, min(limit, 50))
+
+    series = Series.query.filter(
+        Series.rating.isnot(None)
+    ).order_by(Series.rating.desc()).limit(limit).all()
+
+    return jsonify([_serialize_series(s) for s in series])
+
+
+@series_bp.get("/most-watched")
+def most_watched_series():
+    limit = request.args.get("limit", 10, type=int)
+    limit = max(1, min(limit, 50))
+
+    results = db.session.query(
+        Series, func.count(Watchlist.id).label("watch_count")
+    ).join(Watchlist, Series.id == Watchlist.series_id).group_by(
+        Series.id
+    ).order_by(func.count(Watchlist.id).desc()).limit(limit).all()
+
+    return jsonify([
+        {**_serialize_series(s), "watch_count": count}
+        for s, count in results
+    ])
+
+
+@series_bp.get("/most-reviewed")
+def most_reviewed_series():
+    limit = request.args.get("limit", 10, type=int)
+    limit = max(1, min(limit, 50))
+
+    results = db.session.query(
+        Series, func.count(Review.id).label("review_count")
+    ).join(Review, Series.id == Review.series_id).group_by(
+        Series.id
+    ).order_by(func.count(Review.id).desc()).limit(limit).all()
+
+    return jsonify([
+        {**_serialize_series(s), "review_count": count}
+        for s, count in results
+    ])
 
 
 @series_bp.get("/<int:series_id>")
