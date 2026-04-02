@@ -36,10 +36,30 @@
   color: #aaa;
 }
 
+.detail-ratings {
+  display: flex;
+  gap: 20px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
 .detail-rating {
   font-size: 18px;
   color: #f5c518;
   font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.detail-rating .rating-source {
+  font-size: 12px;
+  color: #888;
+  font-weight: 600;
+}
+
+.detail-rating.site {
+  color: #00d1ff;
 }
 
 .detail-desc {
@@ -129,9 +149,17 @@
   gap: 8px;
 }
 
-.rating-label {
+.user-rating .rating-label {
   font-size: 14px;
   color: #aaa;
+  white-space: nowrap;
+}
+
+.quick-rating-value {
+  font-size: 14px;
+  font-weight: 700;
+  color: #f5c518;
+  min-width: 36px;
 }
 
 .stars { display: flex; gap: 2px; }
@@ -269,6 +297,39 @@
   gap: 10px;
   margin-bottom: 24px;
 }
+
+.comment-rating-picker {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.comment-rating-picker .rating-label {
+  font-size: 14px;
+  color: #aaa;
+  white-space: nowrap;
+}
+
+.comment-rating-picker .stars {
+  display: flex;
+  gap: 2px;
+}
+
+.comment-rating-picker .rating-value {
+  font-size: 14px;
+  font-weight: 700;
+  color: #f5c518;
+  min-width: 36px;
+}
+
+.comment-form-error {
+  font-size: 13px;
+  font-weight: 600;
+  color: #e94560;
+  min-height: 0;
+}
+
+.comment-form-error:empty { display: none; }
 
 .comment-form textarea {
   width: 100%;

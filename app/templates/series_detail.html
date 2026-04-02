@@ -24,7 +24,10 @@
       <div class="detail-info">
         <h2 id="detailTitle"></h2>
         <div class="detail-meta" id="detailMeta"></div>
-        <div class="detail-rating" id="detailRating"></div>
+        <div class="detail-ratings">
+          <div class="detail-rating" id="detailRating"></div>
+          <div class="detail-rating site" id="detailSiteRating"></div>
+        </div>
         <p class="detail-desc" id="detailDesc"></p>
         <a id="detailTrailer" class="btn-trailer" href="#" target="_blank" rel="noopener" style="display:none;">Fragmanı İzle</a>
 
@@ -40,7 +43,8 @@
           </select>
           <div class="user-rating" id="userRating">
             <span class="rating-label">Puanla:</span>
-            <div class="stars" id="stars"></div>
+            <div class="stars" id="quickStars"></div>
+            <span class="quick-rating-value" id="quickRatingValue"></span>
           </div>
         </div>
       </div>
@@ -61,7 +65,13 @@
       <h3>Yorumlar</h3>
 
       <form class="comment-form" id="commentForm">
+        <div class="comment-rating-picker">
+          <span class="rating-label">Puanın:</span>
+          <div class="stars" id="commentStars"></div>
+          <span class="rating-value" id="commentRatingValue"></span>
+        </div>
         <textarea id="commentText" placeholder="Bu dizi hakkında ne düşünüyorsun?" rows="3" required></textarea>
+        <div class="comment-form-error" id="commentFormError"></div>
         <button type="submit" class="btn-comment">Yorum Yap</button>
       </form>
 
@@ -103,7 +113,12 @@
         document.getElementById("detailMeta").textContent = parts.join(" · ");
 
         if (s.rating) {
-          document.getElementById("detailRating").textContent = "⭐ " + s.rating + " / 10";
+          document.getElementById("detailRating").innerHTML = '⭐ ' + escapeHtml(String(s.rating)) + ' <span class="rating-source">IMDb</span>';
+        }
+        if (s.site_rating != null) {
+          document.getElementById("detailSiteRating").innerHTML = '⭐ ' + Number(s.site_rating).toFixed(1) + ' <span class="rating-source">Site Ortalaması</span>';
+        } else {
+          document.getElementById("detailSiteRating").innerHTML = '<span class="rating-source">Henüz site puanı yok</span>';
         }
 
         if (s.trailer_url) {
@@ -164,9 +179,41 @@
       })
       .catch(() => {});
 
-    /* ── Stars (1-10) ── */
-    const starsContainer = document.getElementById("stars");
-    let selectedRating = 0;
+    /* ── Quick stars (standalone rating) ── */
+    const quickStars = document.getElementById("quickStars");
+    const quickLabel = document.getElementById("quickRatingValue");
+    let quickRating = 0;
+
+    for (let i = 1; i <= 10; i++) {
+      const star = document.createElement("span");
+      star.className = "star";
+      star.textContent = "★";
+      star.dataset.value = i;
+      star.addEventListener("mouseenter", () => hlQuick(i));
+      star.addEventListener("mouseleave", () => hlQuick(quickRating));
+      star.addEventListener("click", () => {
+        quickRating = i;
+        hlQuick(i);
+        quickLabel.textContent = i + "/10";
+        fetch(`/api/series/${seriesId}/rate`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ rating: i })
+        }).then(r => { if (!r.ok) throw new Error(); }).catch(() => {});
+      });
+      quickStars.appendChild(star);
+    }
+
+    function hlQuick(n) {
+      quickStars.querySelectorAll(".star").forEach(s => {
+        s.classList.toggle("active", parseInt(s.dataset.value) <= n);
+      });
+    }
+
+    /* ── Comment form stars (1-10) ── */
+    const commentStars = document.getElementById("commentStars");
+    const ratingValueLabel = document.getElementById("commentRatingValue");
+    let commentRating = 0;
 
     for (let i = 1; i <= 10; i++) {
       const star = document.createElement("span");
@@ -174,30 +221,22 @@
       star.textContent = "★";
       star.dataset.value = i;
 
-      star.addEventListener("mouseenter", () => highlightStars(i));
-      star.addEventListener("mouseleave", () => highlightStars(selectedRating));
-      star.addEventListener("click", () => submitRating(i));
+      star.addEventListener("mouseenter", () => highlightCommentStars(i));
+      star.addEventListener("mouseleave", () => highlightCommentStars(commentRating));
+      star.addEventListener("click", () => {
+        commentRating = i;
+        highlightCommentStars(i);
+        ratingValueLabel.textContent = i + "/10";
+        document.getElementById("commentFormError").textContent = "";
+      });
 
-      starsContainer.appendChild(star);
+      commentStars.appendChild(star);
     }
 
-    function highlightStars(n) {
-      starsContainer.querySelectorAll(".star").forEach(s => {
+    function highlightCommentStars(n) {
+      commentStars.querySelectorAll(".star").forEach(s => {
         s.classList.toggle("active", parseInt(s.dataset.value) <= n);
       });
-    }
-
-    function submitRating(value) {
-      selectedRating = value;
-      highlightStars(value);
-
-      fetch(`/api/series/${seriesId}/rate`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ rating: value })
-      })
-        .then(r => { if (!r.ok) throw new Error(); })
-        .catch(() => { /* Backend henüz hazır değil */ });
     }
 
     /* ── Favorites ── */
@@ -370,20 +409,40 @@
 
     document.getElementById("commentForm").addEventListener("submit", e => {
       e.preventDefault();
+      const errorEl = document.getElementById("commentFormError");
+      errorEl.textContent = "";
+
       const text = document.getElementById("commentText").value.trim();
       if (!text) return;
+
+      const body = { text };
+      if (commentRating > 0) body.rating = commentRating;
 
       fetch(`/api/series/${seriesId}/comments`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ text })
+        body: JSON.stringify(body)
       })
-        .then(r => { if (!r.ok) throw new Error(); return r.json(); })
+        .then(r => {
+          if (!r.ok) return r.json().then(err => { throw err; });
+          return r.json();
+        })
         .then(() => {
           document.getElementById("commentText").value = "";
+          commentRating = 0;
+          highlightCommentStars(0);
+          ratingValueLabel.textContent = "";
           loadComments();
         })
-        .catch(() => {});
+        .catch(err => {
+          if (err && err.rating_required) {
+            errorEl.textContent = "Yorum yapmak için önce puan verin.";
+          } else if (err && err.error) {
+            errorEl.textContent = err.error;
+          } else {
+            errorEl.textContent = "Yorum gönderilemedi.";
+          }
+        });
     });
 
     loadComments();
