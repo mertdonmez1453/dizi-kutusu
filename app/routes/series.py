@@ -34,9 +34,14 @@ def get_all_series():
 def search_series():
     q = request.args.get("q", "").strip()
     genre = request.args.get("genre", "").strip()
+    year = request.args.get("year", type=int)
+    min_rating = request.args.get("min_rating", type=float)
+    max_rating = request.args.get("max_rating", type=float)
+    status = request.args.get("status", "").strip()
+    sort_by = request.args.get("sort_by", "rating").strip()
 
-    if not q and not genre:
-        return jsonify({"error": "Arama parametresi gerekli (?q=... veya ?genre=...)"}), 400
+    if not q and not genre and not year and min_rating is None and not status:
+        return jsonify({"error": "En az bir arama/filtre parametresi gerekli."}), 400
 
     query = Series.query
 
@@ -48,7 +53,25 @@ def search_series():
     if genre:
         query = query.filter(Series.genre.ilike(f"%{genre}%"))
 
-    query = query.order_by(Series.rating.desc())
+    if year:
+        query = query.filter(Series.release_year == year)
+
+    if min_rating is not None:
+        query = query.filter(Series.rating >= min_rating)
+
+    if max_rating is not None:
+        query = query.filter(Series.rating <= max_rating)
+
+    if status:
+        query = query.filter(Series.status.ilike(f"%{status}%"))
+
+    sort_options = {
+        "rating": Series.rating.desc(),
+        "year": Series.release_year.desc(),
+        "title": Series.title.asc(),
+    }
+    query = query.order_by(sort_options.get(sort_by, Series.rating.desc()))
+
     return paginate(query, _serialize_series)
 
 

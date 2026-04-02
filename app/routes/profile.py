@@ -48,6 +48,26 @@ def get_profile():
     })
 
 
+@profile_bp.get("/api/profile/reviews")
+@login_required
+def get_user_reviews():
+    user = g.current_user
+    reviews = Review.query.filter_by(user_id=user.id).order_by(Review.created_at.desc()).all()
+
+    return jsonify([
+        {
+            "id": r.id,
+            "series_id": r.series_id,
+            "series_title": r.series.title,
+            "series_image": r.series.image_url,
+            "rating": r.rating,
+            "comment": r.comment,
+            "created_at": r.created_at.isoformat()
+        }
+        for r in reviews
+    ])
+
+
 @profile_bp.post("/api/settings/password")
 @login_required
 def update_password():

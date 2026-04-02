@@ -1,117 +1,177 @@
-# FRIENDSHIP ROUTES: Kullanıcıların birbirini takip etmesi / arkadaşlık işlemleri
-
-from flask import Blueprint, jsonify, request, session
+from flask import Blueprint, jsonify, request, g
 from app.db import db
 from app.models.user import User
 from app.models.friendship import Friendship
+from app.models.watchlist import Watchlist
+from app.models.review import Review
+from app.utils import login_required
 
 friendship_bp = Blueprint("friendship", __name__, url_prefix="/api/friendships")
 
 
-def get_current_user():
-    """Session'dan giriş yapmış kullanıcıyı döndürür."""
-    email = session.get("user")
-    if not email:
-        return None
-    return User.query.filter_by(email=email).first()
-
-
-# QUERY: Giriş yapan kullanıcının takip ettiği (following) kişileri listeler (SELECT + JOIN)
+# QUERY: Giriş yapan kullanıcının takip ettiği kişileri listeler (SELECT + JOIN)
 @friendship_bp.get("/following")
+@login_required
 def get_following():
-    user = get_current_user()
-    if not user:
-        return jsonify({"error": "Giriş yapmalısınız"}), 401
-
-    # user.following ilişkisi models'te tanımlandı
+    user = g.current_user
     following_list = user.following.all()
-    
-    result = []
-    for f in following_list:
-        followed_user = f.followed
-        result.append({
+
+    return jsonify([
+        {
             "friendship_id": f.id,
-            "user_id": followed_user.id,
-            "email": followed_user.email,
+            "user_id": f.followed.id,
+            "email": f.followed.email,
             "followed_at": f.created_at.isoformat()
-        })
-    return jsonify(result)
+        }
+        for f in following_list
+    ])
 
 
-# QUERY: Giriş yapan kullanıcıyı takip edenleri (followers) listeler (SELECT + JOIN)
+# QUERY: Giriş yapan kullanıcıyı takip edenleri listeler (SELECT + JOIN)
 @friendship_bp.get("/followers")
+@login_required
 def get_followers():
-    user = get_current_user()
-    if not user:
-        return jsonify({"error": "Giriş yapmalısınız"}), 401
-
-    # user.followers ilişkisi models'te tanımlandı
+    user = g.current_user
     follower_list = user.followers.all()
-    
-    result = []
-    for f in follower_list:
-        follower_user = f.follower
-        result.append({
+
+    return jsonify([
+        {
             "friendship_id": f.id,
-            "user_id": follower_user.id,
-            "email": follower_user.email,
+            "user_id": f.follower.id,
+            "email": f.follower.email,
             "followed_at": f.created_at.isoformat()
-        })
-    return jsonify(result)
+        }
+        for f in follower_list
+    ])
+
+
+# QUERY: Bir kullanıcıyı takip edip etmediğini kontrol eder (SELECT)
+@friendship_bp.get("/check/<int:target_user_id>")
+@login_required
+def check_friendship(target_user_id):
+    user = g.current_user
+    existing = Friendship.query.filter_by(
+        follower_id=user.id, followed_id=target_user_id
+    ).first()
+    return jsonify({"is_following": existing is not None})
 
 
 # QUERY: Başka bir kullanıcıyı takip et (INSERT)
-@friendship_bp.post("/follow")
-def follow_user():
-    user = get_current_user()
-    if not user:
-        return jsonify({"error": "Giriş yapmalısınız"}), 401
+@friendship_bp.post("/follow/<int:target_user_id>")
+@login_required
+def follow_user(target_user_id):
+    user = g.current_user
 
-    data = request.get_json()
-    followed_id = data.get("user_id")
+    if user.id == target_user_id:
+        return jsonify({"error": "Kendinizi takip edemezsiniz."}), 400
 
-    # Kendi kendini takip edemez
-    if user.id == followed_id:
-        return jsonify({"error": "Kendinizi takip edemezsiniz"}), 400
+    target_user = User.query.get_or_404(target_user_id)
 
-    # QUERY: Takip edilmek istenen kullanıcı var mı? (SELECT)
-    target_user = User.query.get(followed_id)
-    if not target_user:
-        return jsonify({"error": "Kullanıcı bulunamadı"}), 404
-
-    # QUERY: Zaten takip ediyor mu? (SELECT)
     existing = Friendship.query.filter_by(
-        follower_id=user.id, 
-        followed_id=followed_id
+        follower_id=user.id, followed_id=target_user_id
     ).first()
-    
     if existing:
-        return jsonify({"error": "Bu kullanıcıyı zaten takip ediyorsunuz"}), 409
+        return jsonify({"error": "Bu kullanıcıyı zaten takip ediyorsunuz."}), 409
 
-    new_follow = Friendship(follower_id=user.id, followed_id=followed_id)
+    new_follow = Friendship(follower_id=user.id, followed_id=target_user_id)
     db.session.add(new_follow)
     db.session.commit()
 
-    return jsonify({"message": f"{target_user.email} başarıyla takip edildi"}), 201
+    return jsonify({"message": f"'{target_user.email}' takip edildi."}), 201
 
 
 # QUERY: Takipten çık (DELETE)
 @friendship_bp.delete("/unfollow/<int:target_user_id>")
+@login_required
 def unfollow_user(target_user_id):
-    user = get_current_user()
-    if not user:
-        return jsonify({"error": "Giriş yapmalısınız"}), 401
+    user = g.current_user
 
-    # QUERY: Takip ilişkisi var mı? (SELECT)
     friendship = Friendship.query.filter_by(
-        follower_id=user.id, 
-        followed_id=target_user_id
+        follower_id=user.id, followed_id=target_user_id
     ).first()
-
     if not friendship:
-        return jsonify({"error": "Bu kullanıcıyı takip etmiyorsunuz"}), 404
+        return jsonify({"error": "Bu kullanıcıyı takip etmiyorsunuz."}), 404
 
     db.session.delete(friendship)
     db.session.commit()
 
-    return jsonify({"message": "Takipten çıkıldı"})
+    return jsonify({"message": "Takipten çıkıldı."})
+
+
+# QUERY: Kullanıcı arama — arkadaş eklemek için e-posta ile arama (SELECT)
+@friendship_bp.get("/search")
+@login_required
+def search_users():
+    q = request.args.get("q", "").strip()
+    if not q:
+        return jsonify({"error": "Arama parametresi gerekli (?q=...)"}), 400
+
+    user = g.current_user
+    users = User.query.filter(
+        User.email.ilike(f"%{q}%"),
+        User.id != user.id
+    ).limit(20).all()
+
+    following_ids = {f.followed_id for f in user.following.all()}
+
+    return jsonify([
+        {
+            "id": u.id,
+            "email": u.email,
+            "is_following": u.id in following_ids
+        }
+        for u in users
+    ])
+
+
+# QUERY: Bir arkadaşın izleme listesini görüntüle (SELECT + JOIN)
+@friendship_bp.get("/<int:target_user_id>/watchlist")
+@login_required
+def get_friend_watchlist(target_user_id):
+    user = g.current_user
+
+    is_following = Friendship.query.filter_by(
+        follower_id=user.id, followed_id=target_user_id
+    ).first()
+    if not is_following:
+        return jsonify({"error": "Bu kullanıcının listesini görmek için takip etmelisiniz."}), 403
+
+    items = Watchlist.query.filter_by(user_id=target_user_id).all()
+
+    return jsonify([
+        {
+            "series_id": item.series.id,
+            "title": item.series.title,
+            "image_url": item.series.image_url,
+            "status": item.status,
+            "rating": item.series.rating
+        }
+        for item in items
+    ])
+
+
+# QUERY: Bir arkadaşın verdiği puanları/yorumları görüntüle (SELECT + JOIN)
+@friendship_bp.get("/<int:target_user_id>/reviews")
+@login_required
+def get_friend_reviews(target_user_id):
+    user = g.current_user
+
+    is_following = Friendship.query.filter_by(
+        follower_id=user.id, followed_id=target_user_id
+    ).first()
+    if not is_following:
+        return jsonify({"error": "Bu kullanıcının yorumlarını görmek için takip etmelisiniz."}), 403
+
+    reviews = Review.query.filter_by(user_id=target_user_id).order_by(Review.created_at.desc()).all()
+
+    return jsonify([
+        {
+            "id": r.id,
+            "series_id": r.series_id,
+            "series_title": r.series.title,
+            "rating": r.rating,
+            "comment": r.comment,
+            "created_at": r.created_at.isoformat()
+        }
+        for r in reviews
+    ])
