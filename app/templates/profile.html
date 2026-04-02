@@ -55,6 +55,14 @@
           </div>
         </div>
 
+        <!-- Yorumlarım -->
+        <div class="reviews-card">
+          <h3>Yorumlarım</h3>
+          <div class="reviews-list" id="reviewsList">
+            <p class="no-activity">Henüz yorum yapılmamış.</p>
+          </div>
+        </div>
+
         <!-- Son Aktiviteler -->
         <div class="activity-card">
           <h3>Son Aktiviteler</h3>
@@ -163,6 +171,31 @@
       d.textContent = str;
       return d.innerHTML;
     }
+
+    /* ── Yorumlarım ── */
+    fetch("/api/profile/reviews")
+      .then(r => { if (!r.ok) throw new Error(); return r.json(); })
+      .then(reviews => {
+        const list = document.getElementById("reviewsList");
+        const items = Array.isArray(reviews) ? reviews : (reviews.items || []);
+        if (!items.length) return;
+        list.innerHTML = "";
+        items.forEach(r => {
+          const div = document.createElement("div");
+          div.className = "review-item";
+          div.onclick = () => { if (r.series_id) window.location.href = `/series/${r.series_id}`; };
+          div.innerHTML = `
+            <div class="review-item-top">
+              <strong>${escapeHtml(r.series_title || "Bilinmeyen Dizi")}</strong>
+              ${r.rating ? `<span class="review-item-rating">⭐ ${r.rating}/10</span>` : ""}
+            </div>
+            ${r.comment || r.text ? `<p class="review-item-text">${escapeHtml(r.comment || r.text)}</p>` : ""}
+            <span class="review-item-date">${new Date(r.created_at).toLocaleDateString("tr-TR")}</span>
+          `;
+          list.appendChild(div);
+        });
+      })
+      .catch(() => {});
 
     /* ── Favori Diziler ── */
     fetch("/api/favorites/")

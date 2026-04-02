@@ -46,6 +46,18 @@ def settings():
     return render_template("settings.html")
 
 
+@main_bp.get("/friends")
+@login_required
+def friends():
+    return render_template("friends.html")
+
+
+@main_bp.get("/friends/<int:user_id>")
+@login_required
+def friend_profile(user_id):
+    return render_template("friend_profile.html", user_id=user_id)
+
+
 @main_bp.get("/admin")
 @login_required
 def admin():

@@ -10,6 +10,7 @@
   <header>
     <h1>🎬 Dizi Kutusu</h1>
     <nav class="header-nav">
+      <a href="{{ url_for('main.friends') }}">Arkadaşlar</a>
       <a href="{{ url_for('main.profile') }}">Profil</a>
       <a href="{{ url_for('main.settings') }}">Ayarlar</a>
       <span class="user-email">{{ session["user"] }}</span>
@@ -22,6 +23,44 @@
     <select id="genreFilter">
       <option value="">Tüm Türler</option>
     </select>
+    <button class="btn-toggle-filters" id="btnFilters">Filtreler ▾</button>
+  </div>
+
+  <div class="advanced-filters" id="advancedFilters" style="display:none;">
+    <div class="filter-group">
+      <label>Yıl</label>
+      <input type="number" id="filterYear" placeholder="Ör: 2024" min="1900" max="2100">
+    </div>
+    <div class="filter-group">
+      <label>Min Puan</label>
+      <input type="number" id="filterMinRating" placeholder="0" min="0" max="10" step="0.1">
+    </div>
+    <div class="filter-group">
+      <label>Max Puan</label>
+      <input type="number" id="filterMaxRating" placeholder="10" min="0" max="10" step="0.1">
+    </div>
+    <div class="filter-group">
+      <label>Durum</label>
+      <select id="filterStatus">
+        <option value="">Tümü</option>
+        <option value="Running">Devam Ediyor</option>
+        <option value="Ended">Bitti</option>
+        <option value="To Be Determined">Belirsiz</option>
+      </select>
+    </div>
+    <div class="filter-group">
+      <label>Sıralama</label>
+      <select id="filterSort">
+        <option value="">Varsayılan</option>
+        <option value="rating_desc">Puan (Yüksek→Düşük)</option>
+        <option value="rating_asc">Puan (Düşük→Yüksek)</option>
+        <option value="year_desc">Yıl (Yeni→Eski)</option>
+        <option value="year_asc">Yıl (Eski→Yeni)</option>
+        <option value="title_asc">Başlık (A→Z)</option>
+        <option value="title_desc">Başlık (Z→A)</option>
+      </select>
+    </div>
+    <button class="btn-clear-filters" id="btnClearFilters">Temizle</button>
   </div>
 
   <div id="loading">Diziler yükleniyor...</div>
@@ -40,8 +79,6 @@
     const PER_PAGE = 20;
     let currentPage = 1;
     let totalItems = 0;
-    let searchQuery = "";
-    let genreFilter = "";
     let searchTimer = null;
 
     fetch("/api/series")
@@ -54,11 +91,33 @@
 
     loadPage(1);
 
+    function getFilters() {
+      return {
+        q: document.getElementById("searchInput").value.trim(),
+        genre: document.getElementById("genreFilter").value,
+        year: document.getElementById("filterYear").value.trim(),
+        min_rating: document.getElementById("filterMinRating").value.trim(),
+        max_rating: document.getElementById("filterMaxRating").value.trim(),
+        status: document.getElementById("filterStatus").value,
+        sort_by: document.getElementById("filterSort").value
+      };
+    }
+
+    function hasActiveFilters(f) {
+      return f.q || f.genre || f.year || f.min_rating || f.max_rating || f.status || f.sort_by;
+    }
+
     function buildUrl(page) {
-      if (searchQuery || genreFilter) {
+      const f = getFilters();
+      if (hasActiveFilters(f)) {
         const params = new URLSearchParams();
-        if (searchQuery) params.set("q", searchQuery);
-        if (genreFilter) params.set("genre", genreFilter);
+        if (f.q) params.set("q", f.q);
+        if (f.genre) params.set("genre", f.genre);
+        if (f.year) params.set("year", f.year);
+        if (f.min_rating) params.set("min_rating", f.min_rating);
+        if (f.max_rating) params.set("max_rating", f.max_rating);
+        if (f.status) params.set("status", f.status);
+        if (f.sort_by) params.set("sort_by", f.sort_by);
         params.set("page", page);
         params.set("per_page", PER_PAGE);
         return "/api/series/search?" + params.toString();
@@ -185,16 +244,35 @@
       return btn;
     }
 
-    document.getElementById("searchInput").addEventListener("input", e => {
+    document.getElementById("searchInput").addEventListener("input", () => {
       clearTimeout(searchTimer);
-      searchTimer = setTimeout(() => {
-        searchQuery = e.target.value.trim();
-        loadPage(1);
-      }, 350);
+      searchTimer = setTimeout(() => loadPage(1), 350);
     });
 
-    document.getElementById("genreFilter").addEventListener("change", e => {
-      genreFilter = e.target.value;
+    document.getElementById("genreFilter").addEventListener("change", () => loadPage(1));
+
+    document.getElementById("btnFilters").addEventListener("click", () => {
+      const panel = document.getElementById("advancedFilters");
+      const btn = document.getElementById("btnFilters");
+      const open = panel.style.display === "none";
+      panel.style.display = open ? "flex" : "none";
+      btn.textContent = open ? "Filtreler ▴" : "Filtreler ▾";
+    });
+
+    ["filterYear", "filterMinRating", "filterMaxRating"].forEach(id => {
+      document.getElementById(id).addEventListener("change", () => loadPage(1));
+    });
+
+    ["filterStatus", "filterSort"].forEach(id => {
+      document.getElementById(id).addEventListener("change", () => loadPage(1));
+    });
+
+    document.getElementById("btnClearFilters").addEventListener("click", () => {
+      document.getElementById("filterYear").value = "";
+      document.getElementById("filterMinRating").value = "";
+      document.getElementById("filterMaxRating").value = "";
+      document.getElementById("filterStatus").value = "";
+      document.getElementById("filterSort").value = "";
       loadPage(1);
     });
   </script>
