@@ -11,6 +11,13 @@ from sqlalchemy.sql.expression import func as sql_func
 series_bp = Blueprint("series", __name__, url_prefix="/api/series")
 
 
+def _get_site_rating(series_id):
+    avg = db.session.query(func.avg(Review.rating)).filter_by(series_id=series_id).scalar()
+    if avg is None:
+        return None
+    return round(float(avg), 1)
+
+
 def _serialize_series(s):
     return {
         "id": s.id,
@@ -18,6 +25,7 @@ def _serialize_series(s):
         "description": s.description,
         "image_url": s.image_url,
         "rating": s.rating,
+        "site_rating": _get_site_rating(s.id),
         "number_of_seasons": s.number_of_seasons,
         "number_of_episodes": s.number_of_episodes,
         "release_year": s.release_year,
@@ -248,7 +256,7 @@ def get_series_stats(series_id):
 @series_bp.post("/<int:series_id>/rate")
 @login_required
 def rate_series(series_id):
-    s = Series.query.get_or_404(series_id)
+    Series.query.get_or_404(series_id)
     data = request.get_json(silent=True)
 
     if not data or "rating" not in data:
@@ -271,15 +279,10 @@ def rate_series(series_id):
         review = Review(user_id=user.id, series_id=series_id, rating=rating_value)
         db.session.add(review)
 
-    db.session.flush()
-
-    avg = db.session.query(func.avg(Review.rating)).filter_by(series_id=series_id).scalar()
-    if avg is not None:
-        s.rating = round(float(avg), 1)
-
     db.session.commit()
 
-    return jsonify({"message": "Puan kaydedildi.", "new_average": s.rating})
+    site_avg = _get_site_rating(series_id)
+    return jsonify({"message": "Puan kaydedildi.", "site_rating": site_avg})
 
 
 @series_bp.get("/<int:series_id>/comments")
@@ -318,11 +321,29 @@ def add_comment(series_id):
 
     if review:
         review.comment = data["text"].strip()
+        if "rating" in data:
+            try:
+                new_rating = float(data["rating"])
+                if 1.0 <= new_rating <= 10.0:
+                    review.rating = new_rating
+            except (ValueError, TypeError):
+                pass
     else:
+        if "rating" not in data:
+            return jsonify({
+                "error": "Bu diziye henüz puan vermemişsiniz. Yorum yapmak için puan da girmelisiniz.",
+                "rating_required": True
+            }), 400
+        try:
+            rating_value = float(data["rating"])
+        except (ValueError, TypeError):
+            return jsonify({"error": "Geçersiz puan değeri."}), 400
+        if not (1.0 <= rating_value <= 10.0):
+            return jsonify({"error": "Puan 1 ile 10 arasında olmalıdır."}), 400
         review = Review(
             user_id=user.id,
             series_id=series_id,
-            rating=5.0,
+            rating=rating_value,
             comment=data["text"].strip()
         )
         db.session.add(review)
@@ -333,5 +354,6 @@ def add_comment(series_id):
         "id": review.id,
         "email": user.email,
         "text": review.comment,
+        "rating": review.rating,
         "created_at": review.created_at.isoformat()
     }), 201
