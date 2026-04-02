@@ -58,6 +58,12 @@ def friend_profile(user_id):
     return render_template("friend_profile.html", user_id=user_id)
 
 
+@main_bp.get("/compare")
+@login_required
+def compare():
+    return render_template("compare.html")
+
+
 @main_bp.get("/admin")
 @login_required
 def admin():
