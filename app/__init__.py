@@ -62,6 +62,21 @@ def create_app(test_config=None):
         db.session.commit()
         click.echo(f"'{email}' artık admin.")
 
+    @app.cli.command("remove-admin")
+    @click.argument("email")
+    def remove_admin(email):
+        """Belirtilen e-posta adresine sahip kullanıcının admin yetkisini kaldırır."""
+        user = User.query.filter_by(email=email).first()
+        if user is None:
+            click.echo(f"Hata: '{email}' ile kayıtlı kullanıcı bulunamadı.")
+            return
+        if not user.is_admin:
+            click.echo(f"'{email}' zaten admin değil.")
+            return
+        user.is_admin = False
+        db.session.commit()
+        click.echo(f"'{email}' artık admin değil.")
+
     with app.app_context():
         db.create_all()
 
