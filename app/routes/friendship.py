@@ -5,6 +5,7 @@ from app.models.friendship import Friendship
 from app.models.watchlist import Watchlist
 from app.models.review import Review
 from app.utils import login_required
+from sqlalchemy import desc
 
 friendship_bp = Blueprint("friendship", __name__, url_prefix="/api/friendships")
 
@@ -175,3 +176,56 @@ def get_friend_reviews(target_user_id):
         }
         for r in reviews
     ])
+
+
+@friendship_bp.get("/feed")
+@login_required
+def activity_feed():
+    user = g.current_user
+    limit = request.args.get("limit", 20, type=int)
+    limit = max(1, min(limit, 50))
+
+    following_ids = [f.followed_id for f in user.following.all()]
+    if not following_ids:
+        return jsonify([])
+
+    activities = []
+
+    recent_reviews = Review.query.filter(
+        Review.user_id.in_(following_ids)
+    ).order_by(desc(Review.created_at)).limit(limit).all()
+
+    for r in recent_reviews:
+        activity = {
+            "type": "comment" if r.comment else "rating",
+            "user_id": r.user.id,
+            "email": r.user.email,
+            "series_id": r.series_id,
+            "series_title": r.series.title,
+            "series_image": r.series.image_url,
+            "rating": r.rating,
+            "comment": r.comment,
+            "created_at": r.created_at.isoformat()
+        }
+        activities.append(activity)
+
+    recent_watchlist = Watchlist.query.filter(
+        Watchlist.user_id.in_(following_ids)
+    ).order_by(desc(Watchlist.added_at)).limit(limit).all()
+
+    for w in recent_watchlist:
+        activity = {
+            "type": "watchlist",
+            "user_id": w.user.id,
+            "email": w.user.email,
+            "series_id": w.series_id,
+            "series_title": w.series.title,
+            "series_image": w.series.image_url,
+            "status": w.status,
+            "created_at": w.added_at.isoformat()
+        }
+        activities.append(activity)
+
+    activities.sort(key=lambda x: x["created_at"], reverse=True)
+
+    return jsonify(activities[:limit])

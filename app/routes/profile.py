@@ -1,9 +1,14 @@
-from flask import Blueprint, request, jsonify, g
+import re
+from flask import Blueprint, request, jsonify, g, session
 from app.db import db
 from app.models.user import User
 from app.models.watchlist import Watchlist
 from app.models.review import Review
+from app.models.favorite import Favorite
+from app.models.friendship import Friendship
 from app.utils import login_required
+
+EMAIL_REGEX = re.compile(r"^[^@\s]+@[^@\s]+\.[^@\s]+$")
 
 profile_bp = Blueprint("profile", __name__)
 
@@ -93,3 +98,67 @@ def update_password():
     db.session.commit()
 
     return jsonify({"message": "Şifre başarıyla güncellendi."})
+
+
+@profile_bp.post("/api/settings/email")
+@login_required
+def update_email():
+    data = request.get_json(silent=True)
+    if not data:
+        return jsonify({"error": "Geçersiz istek."}), 400
+
+    new_email = data.get("new_email", "").strip()
+    password = data.get("password", "")
+
+    if not new_email or not password:
+        return jsonify({"error": "Yeni e-posta ve şifre alanları zorunludur."}), 400
+
+    if not EMAIL_REGEX.match(new_email):
+        return jsonify({"error": "Geçerli bir e-posta adresi giriniz."}), 400
+
+    user = g.current_user
+
+    if not user.check_password(password):
+        return jsonify({"error": "Şifre hatalı."}), 403
+
+    if new_email == user.email:
+        return jsonify({"error": "Yeni e-posta mevcut e-postanızla aynı."}), 400
+
+    if User.query.filter_by(email=new_email).first():
+        return jsonify({"error": "Bu e-posta adresi zaten kullanılıyor."}), 409
+
+    user.email = new_email
+    session["user"] = new_email
+    db.session.commit()
+
+    return jsonify({"message": "E-posta başarıyla güncellendi.", "email": new_email})
+
+
+@profile_bp.delete("/api/settings/account")
+@login_required
+def delete_account():
+    data = request.get_json(silent=True)
+    if not data:
+        return jsonify({"error": "Geçersiz istek."}), 400
+
+    password = data.get("password", "")
+    if not password:
+        return jsonify({"error": "Hesabı silmek için şifrenizi girmelisiniz."}), 400
+
+    user = g.current_user
+
+    if not user.check_password(password):
+        return jsonify({"error": "Şifre hatalı."}), 403
+
+    Review.query.filter_by(user_id=user.id).delete()
+    Watchlist.query.filter_by(user_id=user.id).delete()
+    Favorite.query.filter_by(user_id=user.id).delete()
+    Friendship.query.filter_by(follower_id=user.id).delete()
+    Friendship.query.filter_by(followed_id=user.id).delete()
+
+    db.session.delete(user)
+    db.session.commit()
+
+    session.clear()
+
+    return jsonify({"message": "Hesabınız başarıyla silindi."})
