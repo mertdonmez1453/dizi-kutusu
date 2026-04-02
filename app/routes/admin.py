@@ -4,7 +4,7 @@ from app.models.user import User
 from app.models.series import Series
 from app.models.review import Review
 from app.models.watchlist import Watchlist
-from app.utils import admin_required
+from app.utils import admin_required, paginate
 
 admin_bp = Blueprint("admin", __name__, url_prefix="/api/admin")
 
@@ -23,16 +23,20 @@ def get_stats():
 @admin_bp.get("/users")
 @admin_required
 def get_users():
-    users = User.query.order_by(User.id).all()
-    return jsonify([
-        {
-            "id": u.id,
-            "email": u.email,
-            "is_admin": u.is_admin,
-            "created_at": u.created_at.isoformat()
-        }
-        for u in users
-    ])
+    query = User.query.order_by(User.id)
+    items, meta = paginate(query)
+    return jsonify({
+        "items": [
+            {
+                "id": u.id,
+                "email": u.email,
+                "is_admin": u.is_admin,
+                "created_at": u.created_at.isoformat()
+            }
+            for u in items
+        ],
+        **meta
+    })
 
 
 @admin_bp.delete("/users/<int:user_id>")
@@ -131,18 +135,22 @@ def delete_series(series_id):
 @admin_bp.get("/reviews")
 @admin_required
 def get_reviews():
-    reviews = Review.query.order_by(Review.created_at.desc()).all()
-    return jsonify([
-        {
-            "id": r.id,
-            "email": r.user.email,
-            "series_title": r.series.title,
-            "rating": r.rating,
-            "comment": r.comment,
-            "created_at": r.created_at.isoformat()
-        }
-        for r in reviews
-    ])
+    query = Review.query.order_by(Review.created_at.desc())
+    items, meta = paginate(query)
+    return jsonify({
+        "items": [
+            {
+                "id": r.id,
+                "email": r.user.email,
+                "series_title": r.series.title,
+                "rating": r.rating,
+                "comment": r.comment,
+                "created_at": r.created_at.isoformat()
+            }
+            for r in items
+        ],
+        **meta
+    })
 
 
 @admin_bp.delete("/reviews/<int:review_id>")

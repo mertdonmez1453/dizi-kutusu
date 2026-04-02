@@ -2,7 +2,7 @@ from flask import Blueprint, jsonify, request, g
 from app.db import db
 from app.models.series import Series
 from app.models.review import Review
-from app.utils import login_required
+from app.utils import login_required, paginate
 from sqlalchemy import func
 
 series_bp = Blueprint("series", __name__, url_prefix="/api/series")
@@ -26,8 +26,9 @@ def _serialize_series(s):
 
 @series_bp.get("/")
 def get_all_series():
-    series_list = Series.query.order_by(Series.rating.desc()).limit(50).all()
-    return jsonify([_serialize_series(s) for s in series_list])
+    query = Series.query.order_by(Series.rating.desc())
+    items, meta = paginate(query)
+    return jsonify({"items": [_serialize_series(s) for s in items], **meta})
 
 
 @series_bp.get("/search")
@@ -48,8 +49,9 @@ def search_series():
     if genre:
         query = query.filter(Series.genre.ilike(f"%{genre}%"))
 
-    results = query.order_by(Series.rating.desc()).limit(20).all()
-    return jsonify([_serialize_series(s) for s in results])
+    query = query.order_by(Series.rating.desc())
+    items, meta = paginate(query)
+    return jsonify({"items": [_serialize_series(s) for s in items], **meta})
 
 
 @series_bp.get("/<int:series_id>")
@@ -99,22 +101,27 @@ def rate_series(series_id):
 def get_comments(series_id):
     Series.query.get_or_404(series_id)
 
-    reviews = Review.query.filter(
+    query = Review.query.filter(
         Review.series_id == series_id,
         Review.comment.isnot(None),
         Review.comment != ""
-    ).order_by(Review.created_at.desc()).all()
+    ).order_by(Review.created_at.desc())
 
-    return jsonify([
-        {
-            "id": r.id,
-            "email": r.user.email,
-            "text": r.comment,
-            "rating": r.rating,
-            "created_at": r.created_at.isoformat()
-        }
-        for r in reviews
-    ])
+    items, meta = paginate(query)
+
+    return jsonify({
+        "items": [
+            {
+                "id": r.id,
+                "email": r.user.email,
+                "text": r.comment,
+                "rating": r.rating,
+                "created_at": r.created_at.isoformat()
+            }
+            for r in items
+        ],
+        **meta
+    })
 
 
 @series_bp.post("/<int:series_id>/comments")
