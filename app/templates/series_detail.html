@@ -127,12 +127,13 @@
         document.getElementById("seriesStats").style.display = "block";
 
         const summary = document.getElementById("statsSummary");
+        const wl = data.watchlist || {};
         const items = [
-          { label: "İzleyici", value: data.total_watchers ?? data.watcher_count ?? "—" },
+          { label: "İzleyici", value: wl.total ?? data.total_watchers ?? data.watcher_count ?? "—" },
           { label: "Ort. Puan", value: data.average_rating != null ? Number(data.average_rating).toFixed(1) : "—" },
-          { label: "Toplam Oy", value: data.total_ratings ?? data.rating_count ?? "—" },
-          { label: "Favori", value: data.favorite_count ?? "—" },
-          { label: "Yorum", value: data.review_count ?? data.comment_count ?? "—" }
+          { label: "Toplam Oy", value: data.total_reviews ?? data.total_ratings ?? data.rating_count ?? "—" },
+          { label: "Favori", value: data.total_favorites ?? data.favorite_count ?? "—" },
+          { label: "Yorum", value: data.comment_count ?? data.review_count ?? "—" }
         ];
         summary.innerHTML = items.map(i => `
           <div class="stat-box">
