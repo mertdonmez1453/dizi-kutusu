@@ -148,6 +148,48 @@ def most_reviewed_series():
     ])
 
 
+@series_bp.get("/compare")
+def compare_series():
+    ids_param = request.args.get("ids", "").strip()
+    if not ids_param:
+        return jsonify({"error": "Karşılaştırılacak dizi id'leri gerekli (?ids=1,2)"}), 400
+
+    try:
+        series_ids = [int(x.strip()) for x in ids_param.split(",") if x.strip()]
+    except ValueError:
+        return jsonify({"error": "Geçersiz id formatı. Örnek: ?ids=1,2"}), 400
+
+    if len(series_ids) < 2 or len(series_ids) > 5:
+        return jsonify({"error": "2 ile 5 arasında dizi seçmelisiniz."}), 400
+
+    from app.models.favorite import Favorite
+
+    result = []
+    for sid in series_ids:
+        s = Series.query.get(sid)
+        if s is None:
+            return jsonify({"error": f"ID {sid} ile dizi bulunamadı."}), 404
+
+        total_reviews = Review.query.filter_by(series_id=sid).count()
+        avg_rating = db.session.query(func.avg(Review.rating)).filter_by(series_id=sid).scalar()
+        total_watchlist = Watchlist.query.filter_by(series_id=sid).count()
+        completed = Watchlist.query.filter_by(series_id=sid, status="completed").count()
+        total_favorites = Favorite.query.filter_by(series_id=sid).count()
+
+        result.append({
+            **_serialize_series(s),
+            "stats": {
+                "average_rating": round(float(avg_rating), 1) if avg_rating else None,
+                "total_reviews": total_reviews,
+                "total_watchlist": total_watchlist,
+                "completed": completed,
+                "total_favorites": total_favorites
+            }
+        })
+
+    return jsonify(result)
+
+
 @series_bp.get("/<int:series_id>")
 def get_series_detail(series_id):
     s = Series.query.get_or_404(series_id)
