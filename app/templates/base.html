@@ -30,6 +30,22 @@
     document.querySelectorAll('.flash').forEach(el => {
       setTimeout(() => { el.style.transition = 'opacity .4s'; el.style.opacity = '0'; setTimeout(() => el.remove(), 400); }, 4000);
     });
+
+    (function() {
+      const els = document.querySelectorAll('.user-email');
+      if (!els.length) return;
+      fetch('/api/profile')
+        .then(r => { if (!r.ok) throw new Error(); return r.json(); })
+        .then(data => {
+          if (data.username) {
+            els.forEach(el => {
+              const isAdmin = el.textContent.includes('(Admin)');
+              el.textContent = data.username + (isAdmin ? ' (Admin)' : '');
+            });
+          }
+        })
+        .catch(() => {});
+    })();
   </script>
 </body>
 </html>

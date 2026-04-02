@@ -314,7 +314,14 @@
     loadWatchlistStatus();
 
     /* ── Yorumlar ── */
-    const currentUser = "{{ session['user'] }}";
+    const currentEmail = "{{ session['user'] }}";
+    let currentUsername = null;
+
+    fetch("/api/profile")
+      .then(r => { if (!r.ok) throw new Error(); return r.json(); })
+      .then(data => { currentUsername = data.username || null; })
+      .catch(() => {})
+      .finally(() => { loadComments(); });
 
     function loadComments() {
       fetch(`/api/series/${seriesId}/comments`)
@@ -326,12 +333,14 @@
           comments.forEach(c => {
             const div = document.createElement("div");
             div.className = "comment";
-            const isOwner = c.email === currentUser;
+            const isOwner = (c.username && currentUsername && c.username === currentUsername)
+                         || (c.email && c.email === currentEmail);
+            const displayName = c.username || c.email || "Anonim";
             const dateStr = new Date(c.created_at).toLocaleDateString("tr-TR");
 
             div.innerHTML = `
               <div class="comment-header">
-                <strong>${escapeHtml(c.email || "Anonim")}</strong>
+                <strong>${escapeHtml(displayName)}</strong>
                 <div class="comment-header-right">
                   <span class="comment-date">${dateStr}</span>
                   ${isOwner ? `
@@ -444,7 +453,5 @@
           }
         });
     });
-
-    loadComments();
   </script>
 {% endblock %}
