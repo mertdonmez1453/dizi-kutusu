@@ -154,6 +154,55 @@ def get_series_detail(series_id):
     return jsonify(_serialize_series(s))
 
 
+@series_bp.get("/<int:series_id>/stats")
+def get_series_stats(series_id):
+    from app.models.favorite import Favorite
+
+    Series.query.get_or_404(series_id)
+
+    total_reviews = Review.query.filter_by(series_id=series_id).count()
+    avg_rating = db.session.query(func.avg(Review.rating)).filter_by(series_id=series_id).scalar()
+
+    total_watchlist = Watchlist.query.filter_by(series_id=series_id).count()
+    watching = Watchlist.query.filter_by(series_id=series_id, status="watching").count()
+    completed = Watchlist.query.filter_by(series_id=series_id, status="completed").count()
+    plan_to_watch = Watchlist.query.filter_by(series_id=series_id, status="plan_to_watch").count()
+    dropped = Watchlist.query.filter_by(series_id=series_id, status="dropped").count()
+
+    total_favorites = Favorite.query.filter_by(series_id=series_id).count()
+
+    rating_dist = {}
+    for bucket in range(1, 11):
+        count = Review.query.filter(
+            Review.series_id == series_id,
+            Review.rating >= bucket,
+            Review.rating < bucket + 1
+        ).count()
+        rating_dist[str(bucket)] = count
+
+    comment_count = Review.query.filter(
+        Review.series_id == series_id,
+        Review.comment.isnot(None),
+        Review.comment != ""
+    ).count()
+
+    return jsonify({
+        "series_id": series_id,
+        "average_rating": round(float(avg_rating), 1) if avg_rating else None,
+        "total_reviews": total_reviews,
+        "comment_count": comment_count,
+        "total_favorites": total_favorites,
+        "watchlist": {
+            "total": total_watchlist,
+            "watching": watching,
+            "completed": completed,
+            "plan_to_watch": plan_to_watch,
+            "dropped": dropped
+        },
+        "rating_distribution": rating_dist
+    })
+
+
 @series_bp.post("/<int:series_id>/rate")
 @login_required
 def rate_series(series_id):
