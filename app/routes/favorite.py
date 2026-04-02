@@ -1,84 +1,70 @@
-# FAVORITE ROUTES: Kullanıcıların favori dizileriyle ilgili tüm API endpoint'leri.
-
-from flask import Blueprint, jsonify, request, session
+from flask import Blueprint, jsonify, g
 from app.db import db
-from app.models.user import User
 from app.models.series import Series
 from app.models.favorite import Favorite
+from app.utils import login_required
 
 favorite_bp = Blueprint("favorite", __name__, url_prefix="/api/favorites")
 
 
-def get_current_user():
-    """Session'dan giriş yapmış kullanıcıyı döndürür."""
-    email = session.get("user")
-    if not email:
-        return None
-    return User.query.filter_by(email=email).first()
-
-
 # QUERY: Kullanıcının favori dizilerini getirir (SELECT + JOIN)
 @favorite_bp.get("/")
+@login_required
 def get_favorites():
-    user = get_current_user()
-    if not user:
-        return jsonify({"error": "Giriş yapmalısınız"}), 401
+    user = g.current_user
+    items = Favorite.query.filter_by(user_id=user.id).order_by(Favorite.added_at.desc()).all()
 
-    items = Favorite.query.filter_by(user_id=user.id).all()
-    result = []
-    for item in items:
-        s = item.series
-        result.append({
+    return jsonify([
+        {
             "id": item.id,
-            "series_id": s.id,
-            "title": s.title,
-            "image_url": s.image_url,
-            "rating": s.rating,
-            "genre": s.genre,
+            "series_id": item.series.id,
+            "title": item.series.title,
+            "image_url": item.series.image_url,
+            "rating": item.series.rating,
+            "genre": item.series.genre,
             "added_at": item.added_at.isoformat()
-        })
-    return jsonify(result)
+        }
+        for item in items
+    ])
+
+
+# QUERY: Bir dizinin favorilerde olup olmadığını kontrol eder (SELECT)
+@favorite_bp.get("/<int:series_id>")
+@login_required
+def check_favorite(series_id):
+    user = g.current_user
+    item = Favorite.query.filter_by(user_id=user.id, series_id=series_id).first()
+    return jsonify({"is_favorite": item is not None})
 
 
 # QUERY: Favorilere yeni dizi ekler (INSERT)
-@favorite_bp.post("/add")
-def add_to_favorites():
-    user = get_current_user()
-    if not user:
-        return jsonify({"error": "Giriş yapmalısınız"}), 401
+@favorite_bp.post("/<int:series_id>")
+@login_required
+def add_favorite(series_id):
+    Series.query.get_or_404(series_id)
+    user = g.current_user
 
-    data = request.get_json()
-    series_id = data.get("series_id")
-
-    # QUERY: Dizinin veritabanında var olup olmadığını kontrol eder (SELECT)
-    series = Series.query.get(series_id)
-    if not series:
-        return jsonify({"error": "Dizi bulunamadı"}), 404
-
-    # QUERY: Kullanıcının bu diziyi daha önce favoriye ekleyip eklemediğini kontrol eder (SELECT)
     existing = Favorite.query.filter_by(user_id=user.id, series_id=series_id).first()
     if existing:
-        return jsonify({"error": "Bu dizi zaten favorilerinizde"}), 409
+        return jsonify({"error": "Bu dizi zaten favorilerinizde."}), 409
 
     new_fav = Favorite(user_id=user.id, series_id=series_id)
     db.session.add(new_fav)
     db.session.commit()
 
-    return jsonify({"message": f"'{series.title}' favorilere eklendi"}), 201
+    return jsonify({"message": "Favorilere eklendi."}), 201
 
 
 # QUERY: Favorilerden bir diziyi kaldırır (DELETE)
-@favorite_bp.delete("/remove/<int:item_id>")
-def remove_from_favorites(item_id):
-    user = get_current_user()
-    if not user:
-        return jsonify({"error": "Giriş yapmalısınız"}), 401
-
-    # QUERY: Kullanıcının bu favori kaydının var olup olmadığını kontrol eder (SELECT)
-    item = Favorite.query.filter_by(id=item_id, user_id=user.id).first()
+@favorite_bp.delete("/<int:series_id>")
+@login_required
+def remove_favorite(series_id):
+    user = g.current_user
+    item = Favorite.query.filter_by(user_id=user.id, series_id=series_id).first()
     if not item:
-        return jsonify({"error": "Kayıt bulunamadı"}), 404
+        return jsonify({"error": "Bu dizi favorilerinizde değil."}), 404
 
     db.session.delete(item)
     db.session.commit()
-    return jsonify({"message": "Dizi favorilerden kaldırıldı"})
+
+    return jsonify({"message": "Favorilerden kaldırıldı."})
