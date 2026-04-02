@@ -53,6 +53,23 @@ python -m app.scripts.seed_series --pages 5
 ```
 
 `--pages` parametresi kaç sayfa veri çekileceğini belirler (her sayfa ~250 dizi).
+NOT: Eğer hata alırsanız instance/app.db dosyasını silip yukarıdaki komutu tekrar çalıştırıp database'i tekrar yükleyin.
+
+## Admin Kontrolleri
+
+Bir kullanıcıyı admin yapmak için:
+
+```bash
+flask set-admin test@mail.com
+```
+
+Bir kullanıcının adminliğini geri almak için:
+
+```bash
+flask remove-admin test@mail.com
+```
+
+Admin paneline girmek için /admin adresine gidin. Admin olmayan kullanıcılar anasayfaya gider.
 
 ## Test
 
