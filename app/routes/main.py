@@ -58,6 +58,12 @@ def friend_profile(user_id):
     return render_template("friend_profile.html", user_id=user_id)
 
 
+@main_bp.get("/feed")
+@login_required
+def feed():
+    return render_template("feed.html")
+
+
 @main_bp.get("/favorites")
 @login_required
 def favorites():
