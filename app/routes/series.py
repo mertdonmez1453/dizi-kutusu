@@ -1,10 +1,12 @@
-from flask import Blueprint, jsonify, request, g
+from flask import Blueprint, jsonify, request, g, session
 from app.db import db
 from app.models.series import Series
 from app.models.review import Review
 from app.models.watchlist import Watchlist
+from app.models.user import User
 from app.utils import login_required, paginate
 from sqlalchemy import func
+from sqlalchemy.sql.expression import func as sql_func
 
 series_bp = Blueprint("series", __name__, url_prefix="/api/series")
 
@@ -74,6 +76,30 @@ def search_series():
     query = query.order_by(sort_options.get(sort_by, Series.rating.desc()))
 
     return paginate(query, _serialize_series)
+
+
+@series_bp.get("/random")
+def random_series():
+    genre = request.args.get("genre", "").strip()
+
+    query = Series.query
+
+    email = session.get("user")
+    if email:
+        user = User.query.filter_by(email=email).first()
+        if user:
+            watched_ids = db.session.query(Watchlist.series_id).filter_by(user_id=user.id)
+            query = query.filter(Series.id.notin_(watched_ids))
+
+    if genre:
+        query = query.filter(Series.genre.ilike(f"%{genre}%"))
+
+    series = query.order_by(sql_func.random()).first()
+
+    if series is None:
+        return jsonify({"error": "Önerilebilecek dizi bulunamadı."}), 404
+
+    return jsonify(_serialize_series(series))
 
 
 @series_bp.get("/top-rated")
