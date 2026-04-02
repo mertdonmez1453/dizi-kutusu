@@ -298,7 +298,7 @@ def get_comments(series_id):
     def _serialize_comment(r):
         return {
             "id": r.id,
-            "email": r.user.email,
+            "username": r.user.username,
             "text": r.comment,
             "rating": r.rating,
             "created_at": r.created_at.isoformat()
@@ -352,7 +352,7 @@ def add_comment(series_id):
 
     return jsonify({
         "id": review.id,
-        "email": user.email,
+        "username": user.username,
         "text": review.comment,
         "rating": review.rating,
         "created_at": review.created_at.isoformat()

@@ -26,6 +26,7 @@ def get_users():
     def _serialize_user(u):
         return {
             "id": u.id,
+            "username": u.username,
             "email": u.email,
             "is_admin": u.is_admin,
             "created_at": u.created_at.isoformat()
@@ -134,6 +135,7 @@ def get_reviews():
     def _serialize_review(r):
         return {
             "id": r.id,
+            "username": r.user.username,
             "email": r.user.email,
             "series_title": r.series.title,
             "rating": r.rating,

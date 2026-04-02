@@ -11,6 +11,7 @@ def _get_reset_serializer():
     return URLSafeTimedSerializer(current_app.config["SECRET_KEY"])
 
 EMAIL_REGEX = re.compile(r"^[^@\s]+@[^@\s]+\.[^@\s]+$")
+USERNAME_REGEX = re.compile(r"^[a-zA-Z0-9_]+$")
 
 
 @auth_bp.route("/login", methods=["GET", "POST"])
@@ -45,11 +46,20 @@ def register():
         return redirect(url_for("main.index"))
 
     if request.method == "POST":
+        username = request.form.get("username", "").strip()
         email = request.form.get("email", "").strip()
         password = request.form.get("password", "")
 
-        if not email or not password:
+        if not username or not email or not password:
             flash("Tüm alanlar doldurulmalıdır.", "error")
+            return redirect(url_for("auth.register"))
+
+        if len(username) < 3 or len(username) > 20:
+            flash("Kullanıcı adı 3-20 karakter arasında olmalıdır.", "error")
+            return redirect(url_for("auth.register"))
+
+        if not USERNAME_REGEX.match(username):
+            flash("Kullanıcı adı sadece harf, rakam ve alt çizgi içerebilir.", "error")
             return redirect(url_for("auth.register"))
 
         if not EMAIL_REGEX.match(email):
@@ -60,12 +70,18 @@ def register():
             flash("Şifre en az 6 karakter olmalıdır.", "error")
             return redirect(url_for("auth.register"))
 
+        # QUERY: Kullanıcı adının daha önce alınıp alınmadığını kontrol eder (Search Query)
+        if User.query.filter_by(username=username).first() is not None:
+            flash("Bu kullanıcı adı zaten alınmış.", "error")
+            return redirect(url_for("auth.register"))
+
         # QUERY: Kayıt olmak istenen email adresinin daha önce alınıp alınmadığını kontrol eder (Search Query)
         if User.query.filter_by(email=email).first() is not None:
             flash("Bu e-posta adresi zaten kayıtlı.", "error")
             return redirect(url_for("auth.register"))
 
         new_user = User(
+            username=username,
             email=email,
             password_hash=User.hash_password(password)
         )

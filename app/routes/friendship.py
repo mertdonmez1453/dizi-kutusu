@@ -21,7 +21,7 @@ def get_following():
         {
             "friendship_id": f.id,
             "user_id": f.followed.id,
-            "email": f.followed.email,
+            "username": f.followed.username,
             "followed_at": f.created_at.isoformat()
         }
         for f in following_list
@@ -39,7 +39,7 @@ def get_followers():
         {
             "friendship_id": f.id,
             "user_id": f.follower.id,
-            "email": f.follower.email,
+            "username": f.follower.username,
             "followed_at": f.created_at.isoformat()
         }
         for f in follower_list
@@ -78,7 +78,7 @@ def follow_user(target_user_id):
     db.session.add(new_follow)
     db.session.commit()
 
-    return jsonify({"message": f"'{target_user.email}' takip edildi."}), 201
+    return jsonify({"message": f"'{target_user.username}' takip edildi."}), 201
 
 
 # QUERY: Takipten çık (DELETE)
@@ -99,7 +99,7 @@ def unfollow_user(target_user_id):
     return jsonify({"message": "Takipten çıkıldı."})
 
 
-# QUERY: Kullanıcı arama — arkadaş eklemek için e-posta ile arama (SELECT)
+# QUERY: Kullanıcı arama — arkadaş eklemek için kullanıcı adı veya e-posta ile arama (SELECT)
 @friendship_bp.get("/search")
 @login_required
 def search_users():
@@ -109,7 +109,7 @@ def search_users():
 
     user = g.current_user
     users = User.query.filter(
-        User.email.ilike(f"%{q}%"),
+        User.username.ilike(f"%{q}%") | User.email.ilike(f"%{q}%"),
         User.id != user.id
     ).limit(20).all()
 
@@ -118,7 +118,7 @@ def search_users():
     return jsonify([
         {
             "id": u.id,
-            "email": u.email,
+            "username": u.username,
             "is_following": u.id in following_ids
         }
         for u in users
@@ -199,7 +199,7 @@ def activity_feed():
         activity = {
             "type": "comment" if r.comment else "rating",
             "user_id": r.user.id,
-            "email": r.user.email,
+            "username": r.user.username,
             "series_id": r.series_id,
             "series_title": r.series.title,
             "series_image": r.series.image_url,
@@ -217,7 +217,7 @@ def activity_feed():
         activity = {
             "type": "watchlist",
             "user_id": w.user.id,
-            "email": w.user.email,
+            "username": w.user.username,
             "series_id": w.series_id,
             "series_title": w.series.title,
             "series_image": w.series.image_url,
