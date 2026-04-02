@@ -29,6 +29,7 @@
         <a id="detailTrailer" class="btn-trailer" href="#" target="_blank" rel="noopener" style="display:none;">Fragmanı İzle</a>
 
         <div class="action-row">
+          <button class="btn-favorite" id="btnFavorite">♡ Favorilere Ekle</button>
           <button class="btn-watchlist" id="btnWatchlist">+ Listeme Ekle</button>
           <select class="status-select" id="statusSelect" style="display:none;">
             <option value="" disabled selected>Durum seç...</option>
@@ -144,6 +145,31 @@
         .then(r => { if (!r.ok) throw new Error(); })
         .catch(() => { /* Backend henüz hazır değil */ });
     }
+
+    /* ── Favorites ── */
+    let isFavorite = false;
+    const btnFav = document.getElementById("btnFavorite");
+
+    function loadFavoriteStatus() {
+      fetch(`/api/favorites/${seriesId}`)
+        .then(r => { if (!r.ok) throw new Error(); return r.json(); })
+        .then(data => { isFavorite = data.is_favorite; updateFavoriteBtn(); })
+        .catch(() => {});
+    }
+
+    function updateFavoriteBtn() {
+      btnFav.textContent = isFavorite ? "♥ Favorilerimde" : "♡ Favorilere Ekle";
+      btnFav.classList.toggle("is-fav", isFavorite);
+    }
+
+    btnFav.addEventListener("click", () => {
+      const method = isFavorite ? "DELETE" : "POST";
+      fetch(`/api/favorites/${seriesId}`, { method })
+        .then(r => { if (!r.ok) throw new Error(); isFavorite = !isFavorite; updateFavoriteBtn(); })
+        .catch(() => {});
+    });
+
+    loadFavoriteStatus();
 
     /* ── Watchlist + Status ── */
     let inWatchlist = false;

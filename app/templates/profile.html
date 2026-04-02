@@ -47,6 +47,14 @@
           <div class="stats-grid" id="statsGrid"></div>
         </div>
 
+        <!-- Favori Diziler -->
+        <div class="favorites-card">
+          <h3>Favori Diziler</h3>
+          <div class="favorites-list" id="favoritesList">
+            <p class="no-activity">Henüz favori eklenmemiş.</p>
+          </div>
+        </div>
+
         <!-- Son Aktiviteler -->
         <div class="activity-card">
           <h3>Son Aktiviteler</h3>
@@ -155,5 +163,26 @@
       d.textContent = str;
       return d.innerHTML;
     }
+
+    /* ── Favori Diziler ── */
+    fetch("/api/favorites/")
+      .then(r => { if (!r.ok) throw new Error(); return r.json(); })
+      .then(favorites => {
+        const list = document.getElementById("favoritesList");
+        const items = Array.isArray(favorites) ? favorites : (favorites.items || []);
+        if (!items.length) return;
+        list.innerHTML = "";
+        items.forEach(f => {
+          const div = document.createElement("div");
+          div.className = "favorite-item";
+          div.onclick = () => { window.location.href = `/series/${f.series_id || f.id}`; };
+          div.innerHTML = `
+            <span class="fav-title">${escapeHtml(f.series_title || f.title || "Bilinmeyen Dizi")}</span>
+            <span class="fav-meta">${escapeHtml(f.genre || "")}</span>
+          `;
+          list.appendChild(div);
+        });
+      })
+      .catch(() => {});
   </script>
 {% endblock %}
