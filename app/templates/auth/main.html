@@ -63,6 +63,22 @@
     <button class="btn-clear-filters" id="btnClearFilters">Temizle</button>
   </div>
 
+  <div id="showcases">
+    <section class="showcase" id="topRated">
+      <h2>En Yüksek Puanlılar</h2>
+      <div class="showcase-row" id="topRatedRow"></div>
+    </section>
+    <section class="showcase" id="mostWatched">
+      <h2>En Çok İzlenen</h2>
+      <div class="showcase-row" id="mostWatchedRow"></div>
+    </section>
+    <section class="showcase" id="mostReviewed">
+      <h2>En Çok Yorumlanan</h2>
+      <div class="showcase-row" id="mostReviewedRow"></div>
+    </section>
+  </div>
+
+  <h2 class="section-title" id="allSeriesTitle">Tüm Diziler</h2>
   <div id="loading">Diziler yükleniyor...</div>
   <div class="grid" id="grid"></div>
   <div class="pagination" id="pagination"></div>
@@ -90,6 +106,58 @@
       .catch(() => {});
 
     loadPage(1);
+    loadShowcases();
+
+    /* ── Showcase sections ── */
+    function loadShowcases() {
+      loadShowcase("/api/series/top-rated?limit=10", "topRatedRow", s =>
+        s.rating ? `⭐ ${esc(String(s.rating))}` : ""
+      );
+      loadShowcase("/api/series/most-watched?limit=10", "mostWatchedRow", s =>
+        s.watch_count != null ? `${s.watch_count} izleyici` : ""
+      );
+      loadShowcase("/api/series/most-reviewed?limit=10", "mostReviewedRow", s =>
+        s.review_count != null ? `${s.review_count} yorum` : ""
+      );
+    }
+
+    function loadShowcase(url, rowId, badgeFn) {
+      fetch(url)
+        .then(r => { if (!r.ok) throw new Error(); return r.json(); })
+        .then(data => {
+          const items = Array.isArray(data) ? data : (data.items || []);
+          const row = document.getElementById(rowId);
+          row.innerHTML = "";
+          if (!items.length) {
+            row.innerHTML = '<span class="showcase-empty">Henüz veri yok</span>';
+            return;
+          }
+          items.forEach(s => {
+            const card = document.createElement("div");
+            card.className = "showcase-card";
+            card.onclick = () => { window.location.href = `/series/${s.id}`; };
+            const badge = badgeFn(s);
+            card.innerHTML = `
+              ${s.image_url
+                ? `<img src="${esc(s.image_url)}" alt="${esc(s.title)}" />`
+                : `<div class="showcase-no-img">Görsel yok</div>`}
+              <div class="showcase-info">
+                <span class="showcase-title" title="${esc(s.title)}">${esc(s.title)}</span>
+                ${badge ? `<span class="showcase-badge">${badge}</span>` : ""}
+              </div>
+            `;
+            row.appendChild(card);
+          });
+        })
+        .catch(() => {});
+    }
+
+    function toggleShowcases() {
+      const f = getFilters();
+      const active = hasActiveFilters(f);
+      document.getElementById("showcases").style.display = active ? "none" : "block";
+      document.getElementById("allSeriesTitle").textContent = active ? "Arama Sonuçları" : "Tüm Diziler";
+    }
 
     function getFilters() {
       return {
@@ -126,6 +194,7 @@
     }
 
     function loadPage(page) {
+      toggleShowcases();
       document.getElementById("loading").style.display = "block";
       document.getElementById("grid").innerHTML = "";
       document.getElementById("pagination").innerHTML = "";
