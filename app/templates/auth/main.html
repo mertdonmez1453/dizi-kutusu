@@ -24,6 +24,19 @@
       <option value="">Tüm Türler</option>
     </select>
     <button class="btn-toggle-filters" id="btnFilters">Filtreler ▾</button>
+    <button class="btn-random" id="btnRandom">🎲 Ne İzlesem?</button>
+  </div>
+
+  <!-- Random pick overlay -->
+  <div class="random-overlay" id="randomOverlay">
+    <div class="random-card" id="randomCard">
+      <button class="random-close" id="randomClose">&times;</button>
+      <div class="random-body" id="randomBody"></div>
+      <div class="random-actions">
+        <button class="btn-random-again" id="btnRandomAgain">🎲 Başka Öner</button>
+        <button class="btn-random-go" id="btnRandomGo">Detaya Git →</button>
+      </div>
+    </div>
   </div>
 
   <div class="advanced-filters" id="advancedFilters" style="display:none;">
@@ -334,6 +347,59 @@
 
     ["filterStatus", "filterSort"].forEach(id => {
       document.getElementById(id).addEventListener("change", () => loadPage(1));
+    });
+
+    /* ── Ne İzlesem? ── */
+    let randomSeriesId = null;
+    const overlay = document.getElementById("randomOverlay");
+    const randomBody = document.getElementById("randomBody");
+
+    function fetchRandom() {
+      const genre = document.getElementById("genreFilter").value;
+      const url = genre ? `/api/series/random?genre=${encodeURIComponent(genre)}` : "/api/series/random";
+      randomBody.innerHTML = '<p class="random-loading">Aranıyor...</p>';
+      randomSeriesId = null;
+
+      fetch(url)
+        .then(r => { if (!r.ok) throw new Error(); return r.json(); })
+        .then(s => {
+          randomSeriesId = s.id;
+          randomBody.innerHTML = `
+            <div class="random-poster">
+              ${s.image_url
+                ? `<img src="${esc(s.image_url)}" alt="${esc(s.title)}" />`
+                : `<div class="random-no-img">Görsel yok</div>`}
+            </div>
+            <div class="random-info">
+              <h3>${esc(s.title)}</h3>
+              <span class="random-meta">${esc(String(s.release_year || ""))} · ${esc(s.genre || "")}</span>
+              ${s.rating ? `<span class="random-rating">⭐ ${esc(String(s.rating))}</span>` : ""}
+              ${s.description ? `<p class="random-desc">${esc(s.description)}</p>` : ""}
+            </div>
+          `;
+        })
+        .catch(() => {
+          randomBody.innerHTML = '<p class="random-loading" style="color:#e94560;">Dizi bulunamadı.</p>';
+        });
+    }
+
+    document.getElementById("btnRandom").addEventListener("click", () => {
+      overlay.classList.add("open");
+      fetchRandom();
+    });
+
+    document.getElementById("btnRandomAgain").addEventListener("click", fetchRandom);
+
+    document.getElementById("btnRandomGo").addEventListener("click", () => {
+      if (randomSeriesId) window.location.href = `/series/${randomSeriesId}`;
+    });
+
+    document.getElementById("randomClose").addEventListener("click", () => {
+      overlay.classList.remove("open");
+    });
+
+    overlay.addEventListener("click", e => {
+      if (e.target === overlay) overlay.classList.remove("open");
     });
 
     document.getElementById("btnClearFilters").addEventListener("click", () => {

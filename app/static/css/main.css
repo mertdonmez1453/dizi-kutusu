@@ -322,3 +322,162 @@ header a { color: #e94560; text-decoration: none; }
 
 #loading { text-align: center; padding: 40px; color: #888; }
 #load-error { text-align: center; padding: 40px; color: #e94560; }
+
+/* Ne İzlesem? button */
+.btn-random {
+  padding: 10px 18px;
+  background: linear-gradient(135deg, #e94560, #c23152);
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: opacity 0.15s, transform 0.15s;
+}
+
+.btn-random:hover { opacity: 0.9; transform: scale(1.03); }
+
+/* Random overlay */
+.random-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  background: rgba(0,0,0,0.7);
+  backdrop-filter: blur(4px);
+  justify-content: center;
+  align-items: center;
+}
+
+.random-overlay.open { display: flex; }
+
+.random-card {
+  position: relative;
+  background: #16213e;
+  border-radius: 16px;
+  width: min(480px, 92vw);
+  max-height: 88vh;
+  overflow-y: auto;
+  box-shadow: 0 16px 48px rgba(0,0,0,0.5);
+  animation: randomIn 0.25s ease;
+}
+
+@keyframes randomIn {
+  from { opacity: 0; transform: scale(0.92) translateY(12px); }
+  to   { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+.random-close {
+  position: absolute;
+  top: 12px;
+  right: 14px;
+  background: rgba(0,0,0,0.4);
+  color: #eee;
+  border: none;
+  font-size: 22px;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  cursor: pointer;
+  z-index: 2;
+  transition: background 0.15s;
+}
+
+.random-close:hover { background: rgba(233,69,96,0.7); }
+
+.random-body {
+  display: flex;
+  flex-direction: column;
+}
+
+.random-poster img {
+  width: 100%;
+  max-height: 300px;
+  object-fit: cover;
+  border-radius: 16px 16px 0 0;
+}
+
+.random-no-img {
+  width: 100%;
+  height: 200px;
+  background: #0f3460;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #555;
+  font-size: 13px;
+  border-radius: 16px 16px 0 0;
+}
+
+.random-info {
+  padding: 20px 24px 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.random-info h3 { font-size: 20px; font-weight: 700; }
+
+.random-meta { font-size: 13px; color: #aaa; }
+
+.random-rating {
+  font-size: 14px;
+  color: #f5c518;
+  font-weight: 600;
+}
+
+.random-desc {
+  font-size: 13px;
+  color: #bbb;
+  line-height: 1.5;
+  display: -webkit-box;
+  -webkit-line-clamp: 4;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  margin-top: 4px;
+}
+
+.random-loading {
+  padding: 60px 24px;
+  text-align: center;
+  color: #888;
+  font-size: 14px;
+}
+
+.random-actions {
+  display: flex;
+  gap: 10px;
+  padding: 16px 24px 20px;
+}
+
+.btn-random-again {
+  flex: 1;
+  padding: 11px 16px;
+  background: rgba(255,255,255,0.08);
+  color: #eee;
+  border: 1px solid rgba(255,255,255,0.12);
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.btn-random-again:hover { border-color: #e94560; color: #e94560; }
+
+.btn-random-go {
+  flex: 1;
+  padding: 11px 16px;
+  background: #e94560;
+  color: #fff;
+  border: none;
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: opacity 0.15s;
+}
+
+.btn-random-go:hover { opacity: 0.85; }
