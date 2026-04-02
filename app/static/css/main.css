@@ -105,6 +105,45 @@ header a { color: #e94560; text-decoration: none; }
   font-size: 12px;
 }
 
+/* Pagination */
+.pagination {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 6px;
+  margin-top: 28px;
+  padding-bottom: 20px;
+}
+
+.page-btn {
+  padding: 8px 14px;
+  background: #16213e;
+  color: #eee;
+  border: 1px solid #333;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.page-btn:hover:not(:disabled) { background: #1a4a7a; border-color: #1a4a7a; }
+.page-btn.active { background: #e94560; border-color: #e94560; color: #fff; }
+.page-btn:disabled { opacity: 0.3; cursor: not-allowed; }
+
+.page-dots {
+  color: #666;
+  font-size: 14px;
+  padding: 0 4px;
+}
+
+.no-results {
+  text-align: center;
+  padding: 40px;
+  color: #888;
+  font-style: italic;
+}
+
 /* Shared utility */
 .back-link {
   color: #e94560;
