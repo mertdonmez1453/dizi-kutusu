@@ -1,0 +1,67 @@
+{% extends "base.html" %}
+
+{% block title %}Favori Dizilerim — Dizi Kutusu{% endblock %}
+
+{% block head_css %}
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
+{% endblock %}
+
+{% block body %}
+  <header>
+    <h1><a href="{{ url_for('main.index') }}" class="back-link">← Dizi Kutusu</a></h1>
+    <nav class="header-nav">
+      <span class="user-email">{{ session["user"] }}</span>
+      <a href="{{ url_for('auth.logout') }}" class="logout-link">Çıkış</a>
+    </nav>
+  </header>
+
+  <h2 class="section-title">Favori Dizilerim</h2>
+  <div id="loading">Yükleniyor...</div>
+  <div class="grid" id="grid"></div>
+{% endblock %}
+
+{% block scripts %}
+  <script>
+    function esc(str) {
+      const d = document.createElement("div");
+      d.textContent = str;
+      return d.innerHTML;
+    }
+
+    fetch("/api/favorites/")
+      .then(r => { if (!r.ok) throw new Error(); return r.json(); })
+      .then(data => {
+        document.getElementById("loading").style.display = "none";
+        const items = Array.isArray(data) ? data : (data.items || []);
+
+        if (!items.length) {
+          document.getElementById("grid").innerHTML =
+            '<p class="no-results">Henüz favori dizin yok. Dizi detay sayfasından favorilere ekleyebilirsin.</p>';
+          return;
+        }
+
+        const grid = document.getElementById("grid");
+        items.forEach(s => {
+          const card = document.createElement("div");
+          card.className = "card";
+          card.onclick = () => { window.location.href = `/series/${s.series_id || s.id}`; };
+          card.innerHTML = `
+            ${s.image_url
+              ? `<img src="${esc(s.image_url)}" alt="${esc(s.title || s.series_title || '')}" />`
+              : `<div class="no-img">Görsel yok</div>`}
+            <div class="info">
+              <h3 title="${esc(s.title || s.series_title || '')}">${esc(s.title || s.series_title || 'Bilinmeyen')}</h3>
+              <span>${esc(String(s.release_year || "?"))} · ${esc(s.genre || "")}</span>
+              ${s.rating ? `<span class="rating"> ⭐ ${esc(String(s.rating))}</span>` : ""}
+            </div>
+          `;
+          grid.appendChild(card);
+        });
+      })
+      .catch(() => {
+        document.getElementById("loading").style.display = "none";
+        document.getElementById("grid").innerHTML =
+          '<p id="load-error">Favoriler yüklenirken bir hata oluştu.</p>';
+      });
+  </script>
+{% endblock %}
