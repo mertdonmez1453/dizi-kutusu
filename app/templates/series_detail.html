@@ -1,0 +1,457 @@
+{% extends "base.html" %}
+
+{% block title %}Dizi Kutusu — Detay{% endblock %}
+
+{% block head_css %}
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/detail.css') }}">
+{% endblock %}
+
+{% block body %}
+  <header>
+    <h1><a href="{{ url_for('main.index') }}" class="back-link">← Dizi Kutusu</a></h1>
+    <div>
+      <span class="user-email">{{ session["user"] }}</span>
+      <a href="{{ url_for('auth.logout') }}">Çıkış</a>
+    </div>
+  </header>
+
+  <div id="loading">Yükleniyor...</div>
+
+  <div class="detail" id="detail" style="display:none;">
+    <div class="detail-top">
+      <img id="detailImg" class="detail-poster" src="" alt="" />
+      <div class="detail-info">
+        <h2 id="detailTitle"></h2>
+        <div class="detail-meta" id="detailMeta"></div>
+        <div class="detail-ratings">
+          <div class="detail-rating" id="detailRating"></div>
+          <div class="detail-rating site" id="detailSiteRating"></div>
+        </div>
+        <p class="detail-desc" id="detailDesc"></p>
+        <a id="detailTrailer" class="btn-trailer" href="#" target="_blank" rel="noopener" style="display:none;">Fragmanı İzle</a>
+
+        <div class="action-row">
+          <button class="btn-favorite" id="btnFavorite">♡ Favorilere Ekle</button>
+          <button class="btn-watchlist" id="btnWatchlist">+ Listeme Ekle</button>
+          <select class="status-select" id="statusSelect" style="display:none;">
+            <option value="" disabled selected>Durum seç...</option>
+            <option value="watching">İzliyorum</option>
+            <option value="completed">İzledim</option>
+            <option value="plan_to_watch">İzleyeceğim</option>
+            <option value="dropped">Bıraktım</option>
+          </select>
+          <div class="user-rating" id="userRating">
+            <span class="rating-label">Puanla:</span>
+            <div class="stars" id="quickStars"></div>
+            <span class="quick-rating-value" id="quickRatingValue"></span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- İstatistikler -->
+    <section class="series-stats" id="seriesStats" style="display:none;">
+      <h3>İstatistikler</h3>
+      <div class="stats-summary" id="statsSummary"></div>
+      <div class="rating-chart">
+        <h4>Puan Dağılımı</h4>
+        <div class="chart-bars" id="chartBars"></div>
+      </div>
+    </section>
+
+    <!-- Yorumlar -->
+    <section class="comments-section">
+      <h3>Yorumlar</h3>
+
+      <form class="comment-form" id="commentForm">
+        <div class="comment-rating-picker">
+          <span class="rating-label">Puanın:</span>
+          <div class="stars" id="commentStars"></div>
+          <span class="rating-value" id="commentRatingValue"></span>
+        </div>
+        <textarea id="commentText" placeholder="Bu dizi hakkında ne düşünüyorsun?" rows="3" required></textarea>
+        <div class="comment-form-error" id="commentFormError"></div>
+        <button type="submit" class="btn-comment">Yorum Yap</button>
+      </form>
+
+      <div class="comment-list" id="commentList">
+        <p class="no-comments">Henüz yorum yapılmamış. İlk yorumu sen yap!</p>
+      </div>
+    </section>
+  </div>
+{% endblock %}
+
+{% block scripts %}
+  <script>
+    const seriesId = {{ series_id }};
+
+    fetch(`/api/series/${seriesId}`)
+      .then(r => {
+        if (!r.ok) throw new Error(r.status);
+        return r.json();
+      })
+      .then(s => {
+        document.getElementById("loading").style.display = "none";
+        document.getElementById("detail").style.display = "block";
+
+        document.title = `${s.title} — Dizi Kutusu`;
+
+        const img = document.getElementById("detailImg");
+        if (s.image_url) { img.src = s.image_url; img.alt = s.title; }
+        else img.style.display = "none";
+
+        document.getElementById("detailTitle").textContent = s.title;
+        document.getElementById("detailDesc").textContent = s.description || "Açıklama bulunmuyor.";
+
+        const parts = [];
+        if (s.release_year) parts.push(s.release_year);
+        if (s.genre) parts.push(s.genre);
+        if (s.status) parts.push(s.status);
+        if (s.number_of_seasons) parts.push(s.number_of_seasons + " Sezon");
+        if (s.number_of_episodes) parts.push(s.number_of_episodes + " Bölüm");
+        document.getElementById("detailMeta").textContent = parts.join(" · ");
+
+        if (s.rating) {
+          document.getElementById("detailRating").innerHTML = '⭐ ' + escapeHtml(String(s.rating)) + ' <span class="rating-source">IMDb</span>';
+        }
+        if (s.site_rating != null) {
+          document.getElementById("detailSiteRating").innerHTML = '⭐ ' + Number(s.site_rating).toFixed(1) + ' <span class="rating-source">Site Ortalaması</span>';
+        } else {
+          document.getElementById("detailSiteRating").innerHTML = '<span class="rating-source">Henüz site puanı yok</span>';
+        }
+
+        if (s.trailer_url) {
+          const link = document.getElementById("detailTrailer");
+          link.href = s.trailer_url;
+          link.style.display = "inline-flex";
+        }
+      })
+      .catch(() => {
+        document.getElementById("loading").style.display = "none";
+        const el = document.createElement("div");
+        el.id = "load-error";
+        el.textContent = "Dizi bilgisi yüklenirken bir hata oluştu.";
+        document.getElementById("detail").before(el);
+      });
+
+    /* ── Series Stats ── */
+    fetch(`/api/series/${seriesId}/stats`)
+      .then(r => { if (!r.ok) throw new Error(); return r.json(); })
+      .then(data => {
+        document.getElementById("seriesStats").style.display = "block";
+
+        const summary = document.getElementById("statsSummary");
+        const wl = data.watchlist || {};
+        const items = [
+          { label: "İzleyici", value: wl.total ?? data.total_watchers ?? data.watcher_count ?? "—" },
+          { label: "Ort. Puan", value: data.average_rating != null ? Number(data.average_rating).toFixed(1) : "—" },
+          { label: "Toplam Oy", value: data.total_reviews ?? data.total_ratings ?? data.rating_count ?? "—" },
+          { label: "Favori", value: data.total_favorites ?? data.favorite_count ?? "—" },
+          { label: "Yorum", value: data.comment_count ?? data.review_count ?? "—" }
+        ];
+        summary.innerHTML = items.map(i => `
+          <div class="stat-box">
+            <span class="stat-box-value">${escapeHtml(String(i.value))}</span>
+            <span class="stat-box-label">${escapeHtml(i.label)}</span>
+          </div>
+        `).join("");
+
+        const dist = data.rating_distribution || {};
+        const chartBars = document.getElementById("chartBars");
+        const maxCount = Math.max(1, ...Object.values(dist).map(Number));
+        chartBars.innerHTML = "";
+
+        for (let i = 1; i <= 10; i++) {
+          const count = Number(dist[i] || 0);
+          const pct = (count / maxCount) * 100;
+          const bar = document.createElement("div");
+          bar.className = "chart-bar-group";
+          bar.innerHTML = `
+            <span class="chart-label">${i}</span>
+            <div class="chart-track">
+              <div class="chart-fill" style="width:${pct}%"></div>
+            </div>
+            <span class="chart-count">${count}</span>
+          `;
+          chartBars.appendChild(bar);
+        }
+      })
+      .catch(() => {});
+
+    /* ── Quick stars (standalone rating) ── */
+    const quickStars = document.getElementById("quickStars");
+    const quickLabel = document.getElementById("quickRatingValue");
+    let quickRating = 0;
+
+    for (let i = 1; i <= 10; i++) {
+      const star = document.createElement("span");
+      star.className = "star";
+      star.textContent = "★";
+      star.dataset.value = i;
+      star.addEventListener("mouseenter", () => hlQuick(i));
+      star.addEventListener("mouseleave", () => hlQuick(quickRating));
+      star.addEventListener("click", () => {
+        quickRating = i;
+        hlQuick(i);
+        quickLabel.textContent = i + "/10";
+        fetch(`/api/series/${seriesId}/rate`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ rating: i })
+        }).then(r => { if (!r.ok) throw new Error(); }).catch(() => {});
+      });
+      quickStars.appendChild(star);
+    }
+
+    function hlQuick(n) {
+      quickStars.querySelectorAll(".star").forEach(s => {
+        s.classList.toggle("active", parseInt(s.dataset.value) <= n);
+      });
+    }
+
+    /* ── Comment form stars (1-10) ── */
+    const commentStars = document.getElementById("commentStars");
+    const ratingValueLabel = document.getElementById("commentRatingValue");
+    let commentRating = 0;
+
+    for (let i = 1; i <= 10; i++) {
+      const star = document.createElement("span");
+      star.className = "star";
+      star.textContent = "★";
+      star.dataset.value = i;
+
+      star.addEventListener("mouseenter", () => highlightCommentStars(i));
+      star.addEventListener("mouseleave", () => highlightCommentStars(commentRating));
+      star.addEventListener("click", () => {
+        commentRating = i;
+        highlightCommentStars(i);
+        ratingValueLabel.textContent = i + "/10";
+        document.getElementById("commentFormError").textContent = "";
+      });
+
+      commentStars.appendChild(star);
+    }
+
+    function highlightCommentStars(n) {
+      commentStars.querySelectorAll(".star").forEach(s => {
+        s.classList.toggle("active", parseInt(s.dataset.value) <= n);
+      });
+    }
+
+    /* ── Favorites ── */
+    let isFavorite = false;
+    const btnFav = document.getElementById("btnFavorite");
+
+    function loadFavoriteStatus() {
+      fetch(`/api/favorites/${seriesId}`)
+        .then(r => { if (!r.ok) throw new Error(); return r.json(); })
+        .then(data => { isFavorite = data.is_favorite; updateFavoriteBtn(); })
+        .catch(() => {});
+    }
+
+    function updateFavoriteBtn() {
+      btnFav.textContent = isFavorite ? "♥ Favorilerimde" : "♡ Favorilere Ekle";
+      btnFav.classList.toggle("is-fav", isFavorite);
+    }
+
+    btnFav.addEventListener("click", () => {
+      const method = isFavorite ? "DELETE" : "POST";
+      fetch(`/api/favorites/${seriesId}`, { method })
+        .then(r => { if (!r.ok) throw new Error(); isFavorite = !isFavorite; updateFavoriteBtn(); })
+        .catch(() => {});
+    });
+
+    loadFavoriteStatus();
+
+    /* ── Watchlist + Status ── */
+    let inWatchlist = false;
+    const btnW = document.getElementById("btnWatchlist");
+    const statusSel = document.getElementById("statusSelect");
+
+    const STATUS_LABELS = {
+      watching: "İzliyorum",
+      completed: "İzledim",
+      plan_to_watch: "İzleyeceğim",
+      dropped: "Bıraktım"
+    };
+
+    function loadWatchlistStatus() {
+      fetch(`/api/watchlist/${seriesId}`)
+        .then(r => { if (!r.ok) throw new Error(); return r.json(); })
+        .then(data => {
+          inWatchlist = data.in_watchlist;
+          updateWatchlistUI();
+          if (data.status) statusSel.value = data.status;
+        })
+        .catch(() => {});
+    }
+
+    function updateWatchlistUI() {
+      btnW.textContent = inWatchlist ? "✓ Listemde" : "+ Listeme Ekle";
+      btnW.classList.toggle("in-list", inWatchlist);
+      statusSel.style.display = inWatchlist ? "block" : "none";
+    }
+
+    btnW.addEventListener("click", () => {
+      const method = inWatchlist ? "DELETE" : "POST";
+      fetch(`/api/watchlist/${seriesId}`, { method })
+        .then(r => { if (!r.ok) throw new Error(); inWatchlist = !inWatchlist; updateWatchlistUI(); })
+        .catch(() => {});
+    });
+
+    statusSel.addEventListener("change", () => {
+      const status = statusSel.value;
+      fetch(`/api/watchlist/${seriesId}/status`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ status })
+      })
+        .then(r => { if (!r.ok) throw new Error(); })
+        .catch(() => {});
+    });
+
+    loadWatchlistStatus();
+
+    /* ── Yorumlar ── */
+    const currentEmail = "{{ session['user'] }}";
+    let currentUsername = null;
+
+    fetch("/api/profile")
+      .then(r => { if (!r.ok) throw new Error(); return r.json(); })
+      .then(data => { currentUsername = data.username || null; })
+      .catch(() => {})
+      .finally(() => { loadComments(); });
+
+    function loadComments() {
+      fetch(`/api/series/${seriesId}/comments`)
+        .then(r => { if (!r.ok) throw new Error(); return r.json(); })
+        .then(comments => {
+          const list = document.getElementById("commentList");
+          if (!comments.length) return;
+          list.innerHTML = "";
+          comments.forEach(c => {
+            const div = document.createElement("div");
+            div.className = "comment";
+            const isOwner = (c.username && currentUsername && c.username === currentUsername)
+                         || (c.email && c.email === currentEmail);
+            const displayName = c.username || c.email || "Anonim";
+            const dateStr = new Date(c.created_at).toLocaleDateString("tr-TR");
+
+            div.innerHTML = `
+              <div class="comment-header">
+                <strong>${escapeHtml(displayName)}</strong>
+                <div class="comment-header-right">
+                  <span class="comment-date">${dateStr}</span>
+                  ${isOwner ? `
+                    <button class="comment-action btn-edit" data-id="${c.id}">Düzenle</button>
+                    <button class="comment-action btn-delete" data-id="${c.id}">Sil</button>
+                  ` : ""}
+                </div>
+              </div>
+              ${c.rating ? `<span class="comment-rating">⭐ ${c.rating}/10</span>` : ""}
+              <p class="comment-text" data-id="${c.id}">${escapeHtml(c.text || c.comment || "")}</p>
+            `;
+
+            if (isOwner) {
+              div.querySelector(".btn-edit").addEventListener("click", () => startEdit(c));
+              div.querySelector(".btn-delete").addEventListener("click", () => deleteComment(c.id));
+            }
+
+            list.appendChild(div);
+          });
+        })
+        .catch(() => {});
+    }
+
+    function startEdit(c) {
+      const textEl = document.querySelector(`.comment-text[data-id="${c.id}"]`);
+      const original = c.text || c.comment || "";
+      const parent = textEl.parentElement;
+
+      textEl.style.display = "none";
+
+      const form = document.createElement("div");
+      form.className = "edit-form";
+      form.innerHTML = `
+        <textarea class="edit-textarea">${escapeHtml(original)}</textarea>
+        <div class="edit-actions">
+          <button class="comment-action btn-save-edit">Kaydet</button>
+          <button class="comment-action btn-cancel-edit">İptal</button>
+        </div>
+      `;
+
+      parent.appendChild(form);
+
+      form.querySelector(".btn-cancel-edit").addEventListener("click", () => {
+        form.remove();
+        textEl.style.display = "";
+      });
+
+      form.querySelector(".btn-save-edit").addEventListener("click", () => {
+        const newText = form.querySelector(".edit-textarea").value.trim();
+        if (!newText) return;
+
+        fetch(`/api/reviews/update/${c.id}`, {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ rating: c.rating || null, comment: newText })
+        })
+          .then(r => { if (!r.ok) throw new Error(); loadComments(); })
+          .catch(() => {});
+      });
+    }
+
+    function deleteComment(id) {
+      if (!confirm("Bu yorumu silmek istediğine emin misin?")) return;
+
+      fetch(`/api/reviews/delete/${id}`, { method: "DELETE" })
+        .then(r => { if (!r.ok) throw new Error(); loadComments(); })
+        .catch(() => {});
+    }
+
+    function escapeHtml(str) {
+      const d = document.createElement("div");
+      d.textContent = str;
+      return d.innerHTML;
+    }
+
+    document.getElementById("commentForm").addEventListener("submit", e => {
+      e.preventDefault();
+      const errorEl = document.getElementById("commentFormError");
+      errorEl.textContent = "";
+
+      const text = document.getElementById("commentText").value.trim();
+      if (!text) return;
+
+      const body = { text };
+      if (commentRating > 0) body.rating = commentRating;
+
+      fetch(`/api/series/${seriesId}/comments`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body)
+      })
+        .then(r => {
+          if (!r.ok) return r.json().then(err => { throw err; });
+          return r.json();
+        })
+        .then(() => {
+          document.getElementById("commentText").value = "";
+          commentRating = 0;
+          highlightCommentStars(0);
+          ratingValueLabel.textContent = "";
+          loadComments();
+        })
+        .catch(err => {
+          if (err && err.rating_required) {
+            errorEl.textContent = "Yorum yapmak için önce puan verin.";
+          } else if (err && err.error) {
+            errorEl.textContent = err.error;
+          } else {
+            errorEl.textContent = "Yorum gönderilemedi.";
+          }
+        });
+    });
+  </script>
+{% endblock %}

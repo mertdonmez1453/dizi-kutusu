@@ -1,0 +1,191 @@
+{% extends "base.html" %}
+
+{% block title %}Dizi Kutusu — Ayarlar{% endblock %}
+
+{% block head_css %}
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/profile.css') }}">
+{% endblock %}
+
+{% block body %}
+  <header>
+    <h1><a href="{{ url_for('main.index') }}" class="back-link">← Dizi Kutusu</a></h1>
+    <div>
+      <span class="user-email">{{ session["user"] }}</span>
+      <a href="{{ url_for('auth.logout') }}">Çıkış</a>
+    </div>
+  </header>
+
+  <div class="settings-container">
+    <!-- Şifre Güncelleme -->
+    <div class="settings-card">
+      <h2>Şifre Güncelle</h2>
+      <div class="settings-msg" id="msg"></div>
+      <form class="settings-form" id="passwordForm">
+        <div class="field-group">
+          <label for="currentPassword">Mevcut Şifre</label>
+          <input id="currentPassword" type="password" placeholder="••••••••" required />
+        </div>
+        <div class="field-group">
+          <label for="newPassword">Yeni Şifre</label>
+          <input id="newPassword" type="password" placeholder="En az 6 karakter" required minlength="6" />
+        </div>
+        <div class="field-group">
+          <label for="confirmPassword">Yeni Şifre (Tekrar)</label>
+          <input id="confirmPassword" type="password" placeholder="••••••••" required minlength="6" />
+        </div>
+        <button type="submit" class="btn-save" id="btnSave">Şifreyi Güncelle</button>
+      </form>
+    </div>
+
+    <!-- E-posta Güncelleme -->
+    <div class="settings-card">
+      <h2>E-posta Güncelle</h2>
+      <div class="settings-msg" id="emailMsg"></div>
+      <form class="settings-form" id="emailForm">
+        <div class="field-group">
+          <label for="newEmail">Yeni E-posta</label>
+          <input id="newEmail" type="email" placeholder="yeni@email.com" required />
+        </div>
+        <div class="field-group">
+          <label for="emailPassword">Mevcut Şifre</label>
+          <input id="emailPassword" type="password" placeholder="••••••••" required />
+        </div>
+        <button type="submit" class="btn-save" id="btnEmailSave">E-postayı Güncelle</button>
+      </form>
+    </div>
+
+    <!-- Hesap Silme -->
+    <div class="settings-card danger-card">
+      <h2>Tehlikeli Bölge</h2>
+      <p class="danger-desc">Hesabını silersen tüm verilerin kalıcı olarak kaybolur. Bu işlem geri alınamaz.</p>
+      <button class="btn-danger" id="btnDeleteAccount">Hesabımı Sil</button>
+    </div>
+  </div>
+
+  <!-- Hesap Silme Modalı -->
+  <div class="delete-overlay" id="deleteOverlay">
+    <div class="delete-modal">
+      <h3>Hesabını silmek istediğine emin misin?</h3>
+      <p>Bu işlem geri alınamaz. Onaylamak için şifreni gir.</p>
+      <div class="settings-msg" id="deleteMsg"></div>
+      <input type="password" id="deletePassword" class="delete-input" placeholder="Mevcut şifren" />
+      <div class="delete-actions">
+        <button class="btn-cancel" id="btnDeleteCancel">Vazgeç</button>
+        <button class="btn-danger" id="btnDeleteConfirm">Evet, Hesabımı Sil</button>
+      </div>
+    </div>
+  </div>
+{% endblock %}
+
+{% block scripts %}
+  <script>
+    function showMsg(el, text, type) {
+      el.textContent = text;
+      el.className = "settings-msg " + type;
+      setTimeout(() => { el.className = "settings-msg"; }, 4000);
+    }
+
+    /* ── Şifre Güncelleme ── */
+    const pwForm = document.getElementById("passwordForm");
+    const pwMsg = document.getElementById("msg");
+    const pwBtn = document.getElementById("btnSave");
+
+    pwForm.addEventListener("submit", e => {
+      e.preventDefault();
+      const cur = document.getElementById("currentPassword").value;
+      const np = document.getElementById("newPassword").value;
+      const cp = document.getElementById("confirmPassword").value;
+
+      if (np !== cp) { showMsg(pwMsg, "Yeni şifreler eşleşmiyor.", "error"); return; }
+
+      pwBtn.disabled = true;
+      pwBtn.textContent = "Güncelleniyor...";
+
+      fetch("/api/settings/password", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ current_password: cur, new_password: np })
+      })
+        .then(r => r.json().then(data => ({ ok: r.ok, data })))
+        .then(({ ok, data }) => {
+          if (!ok) throw new Error(data.error || "Bir hata oluştu.");
+          showMsg(pwMsg, data.message, "success");
+          pwForm.reset();
+        })
+        .catch(err => showMsg(pwMsg, err.message, "error"))
+        .finally(() => { pwBtn.disabled = false; pwBtn.textContent = "Şifreyi Güncelle"; });
+    });
+
+    /* ── E-posta Güncelleme ── */
+    const emailForm = document.getElementById("emailForm");
+    const emailMsg = document.getElementById("emailMsg");
+    const emailBtn = document.getElementById("btnEmailSave");
+
+    emailForm.addEventListener("submit", e => {
+      e.preventDefault();
+      const newEmail = document.getElementById("newEmail").value.trim();
+      const password = document.getElementById("emailPassword").value;
+
+      emailBtn.disabled = true;
+      emailBtn.textContent = "Güncelleniyor...";
+
+      fetch("/api/settings/email", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: newEmail, current_password: password })
+      })
+        .then(r => r.json().then(data => ({ ok: r.ok, data })))
+        .then(({ ok, data }) => {
+          if (!ok) throw new Error(data.error || "Bir hata oluştu.");
+          showMsg(emailMsg, data.message || "E-posta güncellendi.", "success");
+          emailForm.reset();
+        })
+        .catch(err => showMsg(emailMsg, err.message, "error"))
+        .finally(() => { emailBtn.disabled = false; emailBtn.textContent = "E-postayı Güncelle"; });
+    });
+
+    /* ── Hesap Silme ── */
+    const overlay = document.getElementById("deleteOverlay");
+    const deleteMsg = document.getElementById("deleteMsg");
+
+    document.getElementById("btnDeleteAccount").addEventListener("click", () => {
+      overlay.classList.add("open");
+      document.getElementById("deletePassword").value = "";
+      deleteMsg.className = "settings-msg";
+    });
+
+    document.getElementById("btnDeleteCancel").addEventListener("click", () => {
+      overlay.classList.remove("open");
+    });
+
+    overlay.addEventListener("click", e => {
+      if (e.target === overlay) overlay.classList.remove("open");
+    });
+
+    document.getElementById("btnDeleteConfirm").addEventListener("click", () => {
+      const password = document.getElementById("deletePassword").value;
+      if (!password) { showMsg(deleteMsg, "Şifre gerekli.", "error"); return; }
+
+      const btn = document.getElementById("btnDeleteConfirm");
+      btn.disabled = true;
+      btn.textContent = "Siliniyor...";
+
+      fetch("/api/settings/account", {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ current_password: password })
+      })
+        .then(r => r.json().then(data => ({ ok: r.ok, data })))
+        .then(({ ok, data }) => {
+          if (!ok) throw new Error(data.error || "Bir hata oluştu.");
+          window.location.href = "/";
+        })
+        .catch(err => {
+          showMsg(deleteMsg, err.message, "error");
+          btn.disabled = false;
+          btn.textContent = "Evet, Hesabımı Sil";
+        });
+    });
+  </script>
+{% endblock %}

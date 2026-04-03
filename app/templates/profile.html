@@ -1,0 +1,221 @@
+{% extends "base.html" %}
+
+{% block title %}Dizi Kutusu — Profil{% endblock %}
+
+{% block head_css %}
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/profile.css') }}">
+{% endblock %}
+
+{% block body %}
+  <header>
+    <h1><a href="{{ url_for('main.index') }}" class="back-link">← Dizi Kutusu</a></h1>
+    <div>
+      <span class="user-email">{{ session["user"] }}</span>
+      <a href="{{ url_for('auth.logout') }}">Çıkış</a>
+    </div>
+  </header>
+
+  <div class="profile-page">
+    <div id="loading">Profil yükleniyor...</div>
+
+    <div class="profile-content" id="profileContent" style="display:none;">
+      <!-- Sol: Profil kartı -->
+      <div class="profile-card">
+        <div class="profile-avatar" id="profileAvatar"></div>
+        <h2 id="profileEmail"></h2>
+        <div class="profile-meta">
+          <div class="meta-item">
+            <span class="meta-label">Kullanıcı ID</span>
+            <span class="meta-value" id="profileId"></span>
+          </div>
+          <div class="meta-item">
+            <span class="meta-label">Kayıt Tarihi</span>
+            <span class="meta-value" id="profileDate"></span>
+          </div>
+        </div>
+        <div class="profile-actions">
+          <a href="{{ url_for('main.settings') }}" class="btn-settings">Ayarlar</a>
+        </div>
+      </div>
+
+      <!-- Sağ: İstatistikler + Aktivite -->
+      <div class="profile-sidebar">
+        <!-- İstatistikler -->
+        <div class="stats-card">
+          <h3>İstatistikler</h3>
+          <div class="stats-grid" id="statsGrid"></div>
+        </div>
+
+        <!-- Favori Diziler -->
+        <div class="favorites-card">
+          <h3>Favori Diziler</h3>
+          <div class="favorites-list" id="favoritesList">
+            <p class="no-activity">Henüz favori eklenmemiş.</p>
+          </div>
+        </div>
+
+        <!-- Yorumlarım -->
+        <div class="reviews-card">
+          <h3>Yorumlarım</h3>
+          <div class="reviews-list" id="reviewsList">
+            <p class="no-activity">Henüz yorum yapılmamış.</p>
+          </div>
+        </div>
+
+        <!-- Son Aktiviteler -->
+        <div class="activity-card">
+          <h3>Son Aktiviteler</h3>
+          <div class="activity-list" id="activityList">
+            <p class="no-activity">Henüz aktivite yok.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+{% endblock %}
+
+{% block scripts %}
+  <script>
+    const STATUS_LABELS = {
+      watching: "İzliyorum",
+      completed: "İzledim",
+      plan_to_watch: "İzleyeceğim",
+      dropped: "Bıraktım"
+    };
+
+    fetch("/api/profile")
+      .then(r => {
+        if (!r.ok) throw new Error(r.status);
+        return r.json();
+      })
+      .then(data => {
+        document.getElementById("loading").style.display = "none";
+        document.getElementById("profileContent").style.display = "flex";
+
+        document.getElementById("profileEmail").textContent = data.email;
+        document.getElementById("profileId").textContent = "#" + data.id;
+
+        const initials = data.email.charAt(0).toUpperCase();
+        document.getElementById("profileAvatar").textContent = initials;
+
+        const date = new Date(data.created_at);
+        document.getElementById("profileDate").textContent = date.toLocaleDateString("tr-TR", {
+          year: "numeric", month: "long", day: "numeric"
+        });
+
+        if (data.stats) renderStats(data.stats);
+        if (data.recent_activity) renderActivity(data.recent_activity);
+      })
+      .catch(() => {
+        document.getElementById("loading").style.display = "none";
+        const el = document.createElement("div");
+        el.id = "load-error";
+        el.textContent = "Profil bilgisi yüklenirken bir hata oluştu.";
+        document.getElementById("profileContent").before(el);
+      });
+
+    function renderStats(stats) {
+      const items = [
+        { label: "Toplam Liste", value: stats.total_watchlist || 0, color: "#e94560" },
+        { label: "İzliyorum", value: stats.watching || 0, color: "#00c030" },
+        { label: "İzledim", value: stats.completed || 0, color: "#f5c518" },
+        { label: "İzleyeceğim", value: stats.plan_to_watch || 0, color: "#00d1ff" },
+        { label: "Bıraktım", value: stats.dropped || 0, color: "#888" },
+        { label: "Yorumlar", value: stats.total_reviews || 0, color: "#e94560" }
+      ];
+
+      const grid = document.getElementById("statsGrid");
+      items.forEach(item => {
+        const div = document.createElement("div");
+        div.className = "stat-item";
+        div.innerHTML = `
+          <span class="stat-value" style="color:${item.color}">${item.value}</span>
+          <span class="stat-label">${item.label}</span>
+        `;
+        grid.appendChild(div);
+      });
+    }
+
+    function renderActivity(activities) {
+      const list = document.getElementById("activityList");
+      if (!activities.length) return;
+      list.innerHTML = "";
+
+      activities.forEach(a => {
+        const div = document.createElement("div");
+        div.className = "activity-item";
+
+        let desc = "";
+        if (a.rating) desc += `⭐ ${a.rating}/10 `;
+        if (a.comment) desc += `"${a.comment.substring(0, 60)}${a.comment.length > 60 ? "..." : ""}"`;
+        if (!desc) desc = "Listeye eklendi";
+
+        const dateStr = new Date(a.created_at).toLocaleDateString("tr-TR", {
+          day: "numeric", month: "short"
+        });
+
+        div.innerHTML = `
+          <div class="activity-main">
+            <strong>${escapeHtml(a.series_title || "Bilinmeyen Dizi")}</strong>
+            <span class="activity-desc">${escapeHtml(desc)}</span>
+          </div>
+          <span class="activity-date">${dateStr}</span>
+        `;
+        list.appendChild(div);
+      });
+    }
+
+    function escapeHtml(str) {
+      const d = document.createElement("div");
+      d.textContent = str;
+      return d.innerHTML;
+    }
+
+    /* ── Yorumlarım ── */
+    fetch("/api/profile/reviews")
+      .then(r => { if (!r.ok) throw new Error(); return r.json(); })
+      .then(reviews => {
+        const list = document.getElementById("reviewsList");
+        const items = Array.isArray(reviews) ? reviews : (reviews.items || []);
+        if (!items.length) return;
+        list.innerHTML = "";
+        items.forEach(r => {
+          const div = document.createElement("div");
+          div.className = "review-item";
+          div.onclick = () => { if (r.series_id) window.location.href = `/series/${r.series_id}`; };
+          div.innerHTML = `
+            <div class="review-item-top">
+              <strong>${escapeHtml(r.series_title || "Bilinmeyen Dizi")}</strong>
+              ${r.rating ? `<span class="review-item-rating">⭐ ${r.rating}/10</span>` : ""}
+            </div>
+            ${r.comment || r.text ? `<p class="review-item-text">${escapeHtml(r.comment || r.text)}</p>` : ""}
+            <span class="review-item-date">${new Date(r.created_at).toLocaleDateString("tr-TR")}</span>
+          `;
+          list.appendChild(div);
+        });
+      })
+      .catch(() => {});
+
+    /* ── Favori Diziler ── */
+    fetch("/api/favorites/")
+      .then(r => { if (!r.ok) throw new Error(); return r.json(); })
+      .then(favorites => {
+        const list = document.getElementById("favoritesList");
+        const items = Array.isArray(favorites) ? favorites : (favorites.items || []);
+        if (!items.length) return;
+        list.innerHTML = "";
+        items.forEach(f => {
+          const div = document.createElement("div");
+          div.className = "favorite-item";
+          div.onclick = () => { window.location.href = `/series/${f.series_id || f.id}`; };
+          div.innerHTML = `
+            <span class="fav-title">${escapeHtml(f.series_title || f.title || "Bilinmeyen Dizi")}</span>
+            <span class="fav-meta">${escapeHtml(f.genre || "")}</span>
+          `;
+          list.appendChild(div);
+        });
+      })
+      .catch(() => {});
+  </script>
+{% endblock %}

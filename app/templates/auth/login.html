@@ -1,20 +1,13 @@
-<!-- Kullanıcının email + şifre girdiği sayfa -->
+{% extends "base.html" %}
 
-<!-- app/templates/auth/login.html -->
-<!doctype html>
-<html lang="tr">
-<head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Dizi Kutusu — Login</title>
+{% block title %}Dizi Kutusu — Login{% endblock %}
 
-  <!-- CSS -->
+{% block head_css %}
   <link rel="stylesheet" href="{{ url_for('static', filename='css/auth.css') }}">
-</head>
+{% endblock %}
 
-<body>
+{% block body %}
   <div class="page">
-    <!-- NAVBAR -->
     <header class="nav">
       <div class="container nav-inner">
         <div class="brand">
@@ -29,7 +22,6 @@
       </div>
     </header>
 
-    <!-- HERO -->
     <main class="hero">
       <div class="hero-card">
         <h1 class="hero-title">
@@ -43,11 +35,10 @@
         </p>
 
         <div class="cta-row">
-          <a class="btn btn-primary" href="#login-form">Get started — it’s free!</a>
+          <a class="btn btn-primary" href="#login-form">Get started — it's free!</a>
           <a class="btn btn-ghost" href="{{ url_for('auth.register') }}">Create account</a>
         </div>
 
-        <!-- Login Form -->
         <section id="login-form" class="form-wrap">
           <form method="POST" action="{{ url_for('auth.login') }}">
             <div class="form-row">
@@ -63,7 +54,7 @@
 
               <div class="form-actions">
                 <button class="btn btn-primary" type="submit">Log in</button>
-                <a class="small-link" href="#">Şifremi unuttum</a>
+                <a class="small-link" href="{{ url_for('main.forgot_password') }}">Şifremi unuttum</a>
               </div>
             </div>
           </form>
@@ -71,8 +62,9 @@
       </div>
     </main>
   </div>
+{% endblock %}
 
-  <!-- ✅ Random background picker -->
+{% block scripts %}
   <script>
     const backgrounds = [
       "{{ url_for('static', filename='img/series1.jpg') }}",
@@ -86,5 +78,4 @@
     const pick = backgrounds[Math.floor(Math.random() * backgrounds.length)];
     document.documentElement.style.setProperty('--bg-image', `url("${pick}")`);
   </script>
-</body>
-</html>
+{% endblock %}

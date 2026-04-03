@@ -1,13 +1,632 @@
-<!-- Kullanıcı giriş yaptıktan sonra gördüğü sayfa -->
+{% extends "base.html" %}
 
-!doctype html>
-<html lang="tr">
-<head>
-  <meta charset="utf-8" />
-  <title>Dizi Kutusu</title>
-</head>
-<body>
-  <h1>Hoş geldin {{ session["user"] }}</h1>
-  <a href="{{ url_for('auth.logout') }}">Çıkış</a>
-</body>
-</html>
+{% block title %}Dizi Kutusu — Keşfet{% endblock %}
+
+{% block head_css %}
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
+{% endblock %}
+
+{% block body %}
+
+  <!-- ═══════════════════════════════════════
+       NAVBAR
+  ═══════════════════════════════════════ -->
+  <header id="site-header">
+    <div class="header-inner">
+      <a href="{{ url_for('main.index') }}" class="logo">
+        <span class="logo-icon">🎬</span>
+        <span class="logo-text">Dizi<span class="logo-accent">Kutusu</span></span>
+      </a>
+
+      <nav class="header-nav" id="headerNav">
+        <a href="{{ url_for('main.feed') }}" class="nav-link">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
+          Aktiviteler
+        </a>
+        <a href="{{ url_for('main.favorites') }}" class="nav-link">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+          Favoriler
+        </a>
+        <a href="{{ url_for('main.compare') }}" class="nav-link">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>
+          Karşılaştır
+        </a>
+        <a href="{{ url_for('main.friends') }}" class="nav-link">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+          Takip
+        </a>
+        <a href="{{ url_for('main.profile') }}" class="nav-link nav-link--profile">
+          <span class="avatar-chip">{{ session["user"][0]|upper if session["user"] else "?" }}</span>
+          <span class="user-email">{{ session["user"] }}</span>
+        </a>
+        <a href="{{ url_for('main.settings') }}" class="nav-link nav-icon-link" title="Ayarlar">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+        </a>
+        <a href="{{ url_for('auth.logout') }}" class="btn-logout">Çıkış</a>
+      </nav>
+
+      <button class="hamburger" id="hamburger" aria-label="Menü">
+        <span></span><span></span><span></span>
+      </button>
+    </div>
+  </header>
+
+  <!-- ═══════════════════════════════════════
+       HERO SECTION
+  ═══════════════════════════════════════ -->
+  <section class="hero">
+    <div class="hero-bg">
+      <div class="hero-orb hero-orb--1"></div>
+      <div class="hero-orb hero-orb--2"></div>
+      <div class="hero-orb hero-orb--3"></div>
+      <div class="hero-grid"></div>
+    </div>
+    <div class="hero-content">
+      <div class="hero-badge">
+        <span class="hero-badge-dot"></span>
+        Yeni diziler eklendi
+      </div>
+      <h1 class="hero-title">
+        Dizi dünyasını<br>
+        <span class="hero-title-gradient">keşfet & takip et</span>
+      </h1>
+      <p class="hero-subtitle">
+        Binlerce dizi arasından favorilerini bul, arkadaşlarınla paylaş ve hiç dizi kaçırma.
+      </p>
+      <div class="hero-actions">
+        <button class="btn-hero-primary" id="btnRandom">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M2 12C2 6.48 6.48 2 12 2s10 4.48 10 10-4.48 10-10 10S2 17.52 2 12z"/><path d="m10 8 6 4-6 4V8z" fill="currentColor" stroke="none"/></svg>
+          Ne İzlesem?
+        </button>
+        <button class="btn-hero-secondary" onclick="document.getElementById('allSeriesTitle').scrollIntoView({behavior:'smooth'})">
+          Tüm Dizileri Gör
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M5 12l7 7 7-7"/></svg>
+        </button>
+      </div>
+    </div>
+    <!-- Hero stats floating pills -->
+    <div class="hero-stats">
+      <div class="stat-pill" id="statSeries">
+        <span class="stat-num">—</span>
+        <span class="stat-label">Dizi</span>
+      </div>
+      <div class="stat-pill">
+        <span class="stat-num" id="statGenres">—</span>
+        <span class="stat-label">Tür</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════════════════════════════════
+       MAIN CONTENT
+  ═══════════════════════════════════════ -->
+  <main class="page-wrap">
+
+    <!-- Filter Bar -->
+    <div class="filter-bar">
+      <div class="search-wrap">
+        <svg class="search-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        <input type="text" id="searchInput" placeholder="Dizi ara..." autocomplete="off" />
+        <button class="search-clear" id="searchClear" title="Temizle">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
+      </div>
+      <div class="filter-select-wrap">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 3H2l8 9.46V19l4 2v-8.54L22 3z"/></svg>
+        <select id="genreFilter">
+          <option value="">Tüm Türler</option>
+        </select>
+      </div>
+      <button class="btn-advanced" id="btnFilters">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="4" y1="6" x2="20" y2="6"/><line x1="8" y1="12" x2="16" y2="12"/><line x1="12" y1="18" x2="12" y2="18" stroke-linecap="round" stroke-width="3"/></svg>
+        Filtrele
+        <span class="filter-count" id="filterCount" style="display:none">0</span>
+      </button>
+    </div>
+
+    <!-- Advanced Filters Panel -->
+    <div class="advanced-panel" id="advancedFilters" style="display:none">
+      <div class="advanced-panel-inner">
+        <div class="filter-group">
+          <label>Yıl</label>
+          <input type="number" id="filterYear" placeholder="Örn: 2023" min="1900" max="2100">
+        </div>
+        <div class="filter-group">
+          <label>Min Puan</label>
+          <input type="number" id="filterMinRating" placeholder="0" min="0" max="10" step="0.1">
+        </div>
+        <div class="filter-group">
+          <label>Max Puan</label>
+          <input type="number" id="filterMaxRating" placeholder="10" min="0" max="10" step="0.1">
+        </div>
+        <div class="filter-group">
+          <label>Durum</label>
+          <select id="filterStatus">
+            <option value="">Tümü</option>
+            <option value="Running">Devam Ediyor</option>
+            <option value="Ended">Bitti</option>
+            <option value="To Be Determined">Belirsiz</option>
+          </select>
+        </div>
+        <div class="filter-group">
+          <label>Sıralama</label>
+          <select id="filterSort">
+            <option value="">Varsayılan</option>
+            <option value="rating_desc">Puan ↓</option>
+            <option value="rating_asc">Puan ↑</option>
+            <option value="year_desc">Yeni → Eski</option>
+            <option value="year_asc">Eski → Yeni</option>
+            <option value="title_asc">A → Z</option>
+            <option value="title_desc">Z → A</option>
+          </select>
+        </div>
+        <button class="btn-clear" id="btnClearFilters">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+          Temizle
+        </button>
+      </div>
+    </div>
+
+    <!-- Random pick overlay -->
+    <div class="random-overlay" id="randomOverlay">
+      <div class="random-card" id="randomCard">
+        <button class="random-close" id="randomClose">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
+        <div class="random-body" id="randomBody"></div>
+        <div class="random-actions">
+          <button class="btn-random-again" id="btnRandomAgain">🎲 Başka Öner</button>
+          <button class="btn-random-go" id="btnRandomGo">Detaya Git →</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Showcase sections (hidden when filtering) -->
+    <div id="showcases">
+      <section class="showcase">
+        <div class="showcase-header">
+          <div class="showcase-title-wrap">
+            <span class="showcase-icon">⭐</span>
+            <h2>En Yüksek Puanlılar</h2>
+          </div>
+          <div class="showcase-nav">
+            <button class="sc-nav-btn" data-row="topRatedRow" data-dir="-1">‹</button>
+            <button class="sc-nav-btn" data-row="topRatedRow" data-dir="1">›</button>
+          </div>
+        </div>
+        <div class="showcase-row" id="topRatedRow"></div>
+      </section>
+
+      <section class="showcase">
+        <div class="showcase-header">
+          <div class="showcase-title-wrap">
+            <span class="showcase-icon">👁</span>
+            <h2>En Çok İzlenen</h2>
+          </div>
+          <div class="showcase-nav">
+            <button class="sc-nav-btn" data-row="mostWatchedRow" data-dir="-1">‹</button>
+            <button class="sc-nav-btn" data-row="mostWatchedRow" data-dir="1">›</button>
+          </div>
+        </div>
+        <div class="showcase-row" id="mostWatchedRow"></div>
+      </section>
+
+      <section class="showcase">
+        <div class="showcase-header">
+          <div class="showcase-title-wrap">
+            <span class="showcase-icon">💬</span>
+            <h2>En Çok Yorumlanan</h2>
+          </div>
+          <div class="showcase-nav">
+            <button class="sc-nav-btn" data-row="mostReviewedRow" data-dir="-1">‹</button>
+            <button class="sc-nav-btn" data-row="mostReviewedRow" data-dir="1">›</button>
+          </div>
+        </div>
+        <div class="showcase-row" id="mostReviewedRow"></div>
+      </section>
+    </div>
+
+    <!-- All Series -->
+    <div class="all-series-header" id="allSeriesTitle">
+      <h2>Tüm Diziler</h2>
+      <span class="series-count" id="seriesCount"></span>
+    </div>
+
+    <div id="loading" class="loading-state">
+      <div class="loading-spinner"></div>
+      <p>Diziler yükleniyor…</p>
+    </div>
+
+    <div class="grid" id="grid"></div>
+    <div class="pagination" id="pagination"></div>
+
+  </main>
+
+  <!-- Ambient floating particles -->
+  <div class="particles" aria-hidden="true">
+    <div class="particle"></div>
+    <div class="particle"></div>
+    <div class="particle"></div>
+    <div class="particle"></div>
+    <div class="particle"></div>
+  </div>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+  /* ─── Utility ─── */
+  function esc(str) {
+    const d = document.createElement("div");
+    d.textContent = str;
+    return d.innerHTML;
+  }
+
+  /* ─── Constants ─── */
+  const PER_PAGE = 27;
+  let currentPage = 1;
+  let totalItems = 0;
+  let searchTimer = null;
+  let allSeriesList = [];
+
+  /* ─── Navbar scroll effect ─── */
+  const header = document.getElementById("site-header");
+  window.addEventListener("scroll", () => {
+    header.classList.toggle("scrolled", window.scrollY > 60);
+  }, { passive: true });
+
+  /* ─── Hamburger ─── */
+  const hamburger = document.getElementById("hamburger");
+  const nav = document.getElementById("headerNav");
+  hamburger.addEventListener("click", () => {
+    nav.classList.toggle("open");
+    hamburger.classList.toggle("active");
+  });
+
+  /* ─── Search clear button ─── */
+  const searchInput = document.getElementById("searchInput");
+  const searchClear = document.getElementById("searchClear");
+  searchInput.addEventListener("input", () => {
+    searchClear.style.opacity = searchInput.value ? "1" : "0";
+    searchClear.style.pointerEvents = searchInput.value ? "auto" : "none";
+  });
+  searchClear.addEventListener("click", () => {
+    searchInput.value = "";
+    searchClear.style.opacity = "0";
+    searchClear.style.pointerEvents = "none";
+    loadPage(1);
+  });
+
+  /* ─── Initial loads ─── */
+  fetch("/api/series")
+    .then(r => { if (!r.ok) throw new Error(); return r.json(); })
+    .then(data => {
+      allSeriesList = Array.isArray(data) ? data : (data.items || []);
+      populateGenres(allSeriesList);
+      // Update hero stats
+      document.getElementById("statSeries").querySelector(".stat-num").textContent = allSeriesList.length;
+      const genres = [...new Set(allSeriesList.map(s => s.genre).filter(Boolean))];
+      document.getElementById("statGenres").textContent = genres.length;
+    })
+    .catch(() => {});
+
+  loadPage(1);
+  loadShowcases();
+
+  /* ══ Showcase sections ══ */
+  function loadShowcases() {
+    loadShowcase("/api/series/top-rated?limit=10", "topRatedRow", s =>
+      s.rating ? `⭐ ${esc(String(s.rating))}` : ""
+    );
+    loadShowcase("/api/series/most-watched?limit=10", "mostWatchedRow", s =>
+      s.watch_count != null ? `👁 ${s.watch_count}` : ""
+    );
+    loadShowcase("/api/series/most-reviewed?limit=10", "mostReviewedRow", s =>
+      s.review_count != null ? `💬 ${s.review_count}` : ""
+    );
+  }
+
+  function loadShowcase(url, rowId, badgeFn) {
+    fetch(url)
+      .then(r => { if (!r.ok) throw new Error(); return r.json(); })
+      .then(data => {
+        const items = Array.isArray(data) ? data : (data.items || []);
+        const row = document.getElementById(rowId);
+        row.innerHTML = "";
+        if (!items.length) {
+          row.innerHTML = '<span class="showcase-empty">Henüz veri yok</span>';
+          return;
+        }
+        items.forEach((s, i) => {
+          const card = document.createElement("div");
+          card.className = "showcase-card";
+          card.style.animationDelay = `${i * 60}ms`;
+          card.onclick = () => { window.location.href = `/series/${s.id}`; };
+          const badge = badgeFn(s);
+          card.innerHTML = `
+            <div class="sc-card-img">
+              ${s.image_url
+                ? `<img src="${esc(s.image_url)}" alt="${esc(s.title)}" loading="lazy" />`
+                : `<div class="sc-no-img"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="2" width="20" height="20" rx="3"/><path d="m2 12 5-5 4 4 3-3 5 5"/></svg></div>`}
+              <div class="sc-card-overlay"></div>
+              ${badge ? `<div class="sc-badge">${badge}</div>` : ""}
+            </div>
+            <div class="sc-card-info">
+              <span class="sc-title" title="${esc(s.title)}">${esc(s.title)}</span>
+              <span class="sc-year">${s.release_year || "?"}</span>
+            </div>
+          `;
+          row.appendChild(card);
+        });
+      })
+      .catch(() => {});
+  }
+
+  /* Showcase scroll nav */
+  document.querySelectorAll(".sc-nav-btn").forEach(btn => {
+    btn.addEventListener("click", () => {
+      const row = document.getElementById(btn.dataset.row);
+      const dir = parseInt(btn.dataset.dir);
+      row.scrollBy({ left: dir * 420, behavior: "smooth" });
+    });
+  });
+
+  /* ══ Filters ══ */
+  function toggleShowcases() {
+    const f = getFilters();
+    const active = hasActiveFilters(f);
+    document.getElementById("showcases").style.display = active ? "none" : "";
+    const titleEl = document.getElementById("allSeriesTitle").querySelector("h2");
+    titleEl.textContent = active ? "Arama Sonuçları" : "Tüm Diziler";
+  }
+
+  function getFilters() {
+    return {
+      q: searchInput.value.trim(),
+      genre: document.getElementById("genreFilter").value,
+      year: document.getElementById("filterYear").value.trim(),
+      min_rating: document.getElementById("filterMinRating").value.trim(),
+      max_rating: document.getElementById("filterMaxRating").value.trim(),
+      status: document.getElementById("filterStatus").value,
+      sort_by: document.getElementById("filterSort").value
+    };
+  }
+
+  function hasActiveFilters(f) {
+    return f.q || f.genre || f.year || f.min_rating || f.max_rating || f.status || f.sort_by;
+  }
+
+  function countActiveFilters() {
+    const f = getFilters();
+    return [f.year, f.min_rating, f.max_rating, f.status, f.sort_by].filter(Boolean).length;
+  }
+
+  function updateFilterCount() {
+    const n = countActiveFilters();
+    const badge = document.getElementById("filterCount");
+    if (n > 0) { badge.textContent = n; badge.style.display = "flex"; }
+    else { badge.style.display = "none"; }
+  }
+
+  function buildUrl(page) {
+    const f = getFilters();
+    if (hasActiveFilters(f)) {
+      const params = new URLSearchParams();
+      if (f.q) params.set("q", f.q);
+      if (f.genre) params.set("genre", f.genre);
+      if (f.year) params.set("year", f.year);
+      if (f.min_rating) params.set("min_rating", f.min_rating);
+      if (f.max_rating) params.set("max_rating", f.max_rating);
+      if (f.status) params.set("status", f.status);
+      if (f.sort_by) params.set("sort_by", f.sort_by);
+      params.set("page", page);
+      params.set("per_page", PER_PAGE);
+      return "/api/series/search?" + params.toString();
+    }
+    return `/api/series/?page=${page}&per_page=${PER_PAGE}`;
+  }
+
+  function loadPage(page) {
+    toggleShowcases();
+    updateFilterCount();
+    const loading = document.getElementById("loading");
+    const grid = document.getElementById("grid");
+    loading.style.display = "flex";
+    grid.innerHTML = "";
+    document.getElementById("pagination").innerHTML = "";
+
+    fetch(buildUrl(page))
+      .then(r => { if (!r.ok) throw new Error(r.status); return r.json(); })
+      .then(data => {
+        loading.style.display = "none";
+        const items = Array.isArray(data) ? data : (data.items || []);
+        totalItems = data.total != null ? data.total : items.length;
+        currentPage = data.page || page;
+
+        const countEl = document.getElementById("seriesCount");
+        if (countEl) countEl.textContent = totalItems ? `${totalItems} dizi` : "";
+
+        if (!items.length) {
+          grid.innerHTML = '<div class="no-results"><svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" opacity="0.3"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg><p>Sonuç bulunamadı</p></div>';
+          return;
+        }
+        renderCards(items);
+        renderPagination();
+      })
+      .catch(() => {
+        loading.style.display = "none";
+        grid.innerHTML = '<div class="no-results" id="load-error"><p>⚠️ Diziler yüklenirken bir hata oluştu.</p></div>';
+      });
+  }
+
+  function populateGenres(list) {
+    const genres = [...new Set(list.map(s => s.genre).filter(Boolean))].sort();
+    const sel = document.getElementById("genreFilter");
+    genres.forEach(g => {
+      const opt = document.createElement("option");
+      opt.value = g;
+      opt.textContent = g;
+      sel.appendChild(opt);
+    });
+  }
+
+  function renderCards(list) {
+    const grid = document.getElementById("grid");
+    grid.innerHTML = "";
+    list.forEach((s, i) => {
+      const card = document.createElement("div");
+      card.className = "card";
+      card.style.animationDelay = `${i * 30}ms`;
+      card.onclick = () => { window.location.href = `/series/${s.id}`; };
+      card.innerHTML = `
+        <div class="card-img-wrap">
+          ${s.image_url
+            ? `<img src="${esc(s.image_url)}" alt="${esc(s.title)}" loading="lazy" />`
+            : `<div class="no-img"><svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="2" width="20" height="20" rx="3"/><path d="m2 12 5-5 4 4 3-3 5 5"/></svg></div>`}
+          <div class="card-overlay">
+            <button class="card-play-btn" aria-label="Detaya git">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+            </button>
+          </div>
+          ${s.rating ? `<div class="card-rating-badge">⭐ ${esc(String(s.rating))}</div>` : ""}
+        </div>
+        <div class="info">
+          <h3 title="${esc(s.title)}">${esc(s.title)}</h3>
+          <div class="card-meta-row">
+            <span class="meta-year">${esc(String(s.release_year || "?"))}</span>
+            ${s.genre ? `<span class="meta-genre">${esc(s.genre)}</span>` : ""}
+          </div>
+        </div>
+      `;
+      grid.appendChild(card);
+    });
+  }
+
+  /* ── Pagination ── */
+  function renderPagination() {
+    const totalPages = Math.ceil(totalItems / PER_PAGE);
+    if (totalPages <= 1) return;
+    const pag = document.getElementById("pagination");
+    pag.innerHTML = "";
+
+    const prev = makePagBtn("←", currentPage <= 1, () => loadPage(currentPage - 1));
+    pag.appendChild(prev);
+
+    const start = Math.max(1, currentPage - 2);
+    const end = Math.min(totalPages, currentPage + 2);
+
+    if (start > 1) {
+      pag.appendChild(makePagBtn(1, false, () => loadPage(1)));
+      if (start > 2) pag.appendChild(makeDots());
+    }
+    for (let i = start; i <= end; i++) {
+      const btn = makePagBtn(i, false, () => loadPage(i));
+      if (i === currentPage) btn.classList.add("active");
+      pag.appendChild(btn);
+    }
+    if (end < totalPages) {
+      if (end < totalPages - 1) pag.appendChild(makeDots());
+      pag.appendChild(makePagBtn(totalPages, false, () => loadPage(totalPages)));
+    }
+
+    const next = makePagBtn("→", currentPage >= totalPages, () => loadPage(currentPage + 1));
+    pag.appendChild(next);
+  }
+
+  function makePagBtn(label, disabled, onClick) {
+    const btn = document.createElement("button");
+    btn.className = "page-btn";
+    btn.textContent = label;
+    btn.disabled = disabled;
+    btn.onclick = onClick;
+    return btn;
+  }
+  function makeDots() {
+    const s = document.createElement("span");
+    s.className = "page-dots";
+    s.textContent = "…";
+    return s;
+  }
+
+  /* ── Listeners ── */
+  searchInput.addEventListener("input", () => {
+    clearTimeout(searchTimer);
+    searchTimer = setTimeout(() => loadPage(1), 350);
+  });
+  document.getElementById("genreFilter").addEventListener("change", () => loadPage(1));
+
+  document.getElementById("btnFilters").addEventListener("click", () => {
+    const panel = document.getElementById("advancedFilters");
+    const btn = document.getElementById("btnFilters");
+    const open = panel.style.display === "none" || panel.style.display === "";
+    panel.style.display = open ? "block" : "none";
+    btn.classList.toggle("btn-advanced--active", open);
+    panel.style.animation = open ? "slideDown 0.25s ease" : "";
+  });
+
+  ["filterYear","filterMinRating","filterMaxRating"].forEach(id =>
+    document.getElementById(id).addEventListener("change", () => loadPage(1))
+  );
+  ["filterStatus","filterSort"].forEach(id =>
+    document.getElementById(id).addEventListener("change", () => loadPage(1))
+  );
+  document.getElementById("btnClearFilters").addEventListener("click", () => {
+    ["filterYear","filterMinRating","filterMaxRating","filterStatus","filterSort"].forEach(id =>
+      document.getElementById(id).value = ""
+    );
+    loadPage(1);
+  });
+
+  /* ── Ne İzlesem? ── */
+  let randomSeriesId = null;
+  const overlay = document.getElementById("randomOverlay");
+  const randomBody = document.getElementById("randomBody");
+
+  function fetchRandom() {
+    const genre = document.getElementById("genreFilter").value;
+    const url = genre ? `/api/series/random?genre=${encodeURIComponent(genre)}` : "/api/series/random";
+    randomBody.innerHTML = `
+      <div class="random-loading">
+        <div class="loading-spinner"></div>
+        <p>Aranıyor…</p>
+      </div>
+    `;
+    randomSeriesId = null;
+
+    fetch(url)
+      .then(r => { if (!r.ok) throw new Error(); return r.json(); })
+      .then(s => {
+        randomSeriesId = s.id;
+        randomBody.innerHTML = `
+          <div class="random-poster">
+            ${s.image_url
+              ? `<img src="${esc(s.image_url)}" alt="${esc(s.title)}" />`
+              : `<div class="random-no-img"><svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="2" width="20" height="20" rx="3"/><path d="m2 12 5-5 4 4 3-3 5 5"/></svg></div>`}
+            <div class="random-poster-gradient"></div>
+          </div>
+          <div class="random-info">
+            <h3>${esc(s.title)}</h3>
+            <div class="random-chips">
+              ${s.release_year ? `<span class="chip">${esc(String(s.release_year))}</span>` : ""}
+              ${s.genre ? `<span class="chip">${esc(s.genre)}</span>` : ""}
+              ${s.rating ? `<span class="chip chip--gold">⭐ ${esc(String(s.rating))}</span>` : ""}
+            </div>
+            ${s.description ? `<p class="random-desc">${esc(s.description)}</p>` : ""}
+          </div>
+        `;
+      })
+      .catch(() => {
+        randomBody.innerHTML = '<div class="random-loading"><p style="color:var(--accent)">Dizi bulunamadı.</p></div>';
+      });
+  }
+
+  document.getElementById("btnRandom").addEventListener("click", () => { overlay.classList.add("open"); fetchRandom(); });
+  document.getElementById("btnRandomAgain").addEventListener("click", fetchRandom);
+  document.getElementById("btnRandomGo").addEventListener("click", () => { if (randomSeriesId) window.location.href = `/series/${randomSeriesId}`; });
+  document.getElementById("randomClose").addEventListener("click", () => overlay.classList.remove("open"));
+  overlay.addEventListener("click", e => { if (e.target === overlay) overlay.classList.remove("open"); });
+</script>
+{% endblock %}
