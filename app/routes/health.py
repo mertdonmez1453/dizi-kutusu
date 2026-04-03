@@ -1,3 +1,5 @@
+# sistem çalışıyor mu diye kontrol için.
+
 from flask import Blueprint, jsonify
 
 health_bp = Blueprint("health", __name__)
