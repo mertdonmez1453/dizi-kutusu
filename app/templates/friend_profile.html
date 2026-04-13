@@ -3,167 +3,241 @@
 {% block title %}Kullanıcı Profili — Dizi Kutusu{% endblock %}
 
 {% block head_css %}
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
-  <link rel="stylesheet" href="{{ url_for('static', filename='css/friends.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/pages.css') }}">
 {% endblock %}
 
 {% block body %}
-  <div class="friends-page">
-    <div class="friends-header">
-      <a href="{{ url_for('main.friends') }}" class="back-link">←</a>
-      <h2>Kullanıcı Profili</h2>
+
+  <!-- NAVBAR -->
+  <header id="site-header">
+    <div class="header-inner">
+      <a href="{{ url_for('main.index') }}" class="logo">
+        <span class="logo-icon">🎬</span>
+        <span class="logo-text">Dizi<span class="logo-accent">Kutusu</span></span>
+      </a>
+      <nav class="header-nav" id="headerNav">
+        <a href="{{ url_for('main.feed') }}" class="nav-link">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
+          Aktiviteler
+        </a>
+        <a href="{{ url_for('main.favorites') }}" class="nav-link">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+          Favoriler
+        </a>
+        <a href="{{ url_for('main.compare') }}" class="nav-link">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>
+          Karşılaştır
+        </a>
+        <a href="{{ url_for('main.friends') }}" class="nav-link active">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+          Takip
+        </a>
+        <a href="{{ url_for('main.profile') }}" class="nav-link nav-link--profile">
+          <span class="avatar-chip">{{ session["user"][0]|upper if session["user"] else "?" }}</span>
+          <span class="user-email">{{ session["user"] }}</span>
+        </a>
+        <a href="{{ url_for('main.settings') }}" class="nav-link nav-icon-link" title="Ayarlar">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+        </a>
+        <a href="{{ url_for('auth.logout') }}" class="btn-logout">Çıkış</a>
+      </nav>
+      <button class="hamburger" id="hamburger" aria-label="Menü">
+        <span></span><span></span><span></span>
+      </button>
+    </div>
+  </header>
+
+  <!-- PROFILE HERO -->
+  <section class="profile-hero" id="profileHero">
+    <div class="page-hero-bg">
+      <div class="page-hero-orb page-hero-orb--1" style="background:radial-gradient(circle,rgba(15,217,193,0.4),transparent 70%)"></div>
+      <div class="page-hero-orb page-hero-orb--2" style="background:radial-gradient(circle,rgba(124,92,252,0.5),transparent 70%)"></div>
+    </div>
+    <div class="profile-hero-content" id="loadingProfile">
+      <div class="loading-spinner"></div>
+    </div>
+    <div class="profile-hero-content" id="fpHeroContent" style="display:none">
+      <div class="profile-hero-avatar" id="fpAvatar"></div>
+      <div class="profile-hero-info">
+        <h1 class="profile-hero-name" id="fpName"></h1>
+        <div class="profile-hero-meta">
+          <span class="fp-email-tag" id="fpEmail"></span>
+        </div>
+      </div>
+      <button class="btn-follow" id="fpFollowBtn">Takip Et</button>
+    </div>
+  </section>
+
+  <!-- MAIN -->
+  <main class="page-wrap" id="fpMain" style="display:none">
+    <div class="tab-bar">
+      <button class="tab-pill active" data-tab="watchlist">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="9" y1="9" x2="15" y2="9"/><line x1="9" y1="12" x2="15" y2="12"/><line x1="9" y1="15" x2="13" y2="15"/></svg>
+        İzleme Listesi
+      </button>
+      <button class="tab-pill" data-tab="reviews">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+        Yorumlar
+      </button>
     </div>
 
-    <div id="loadingProfile"><p class="no-friends">Yükleniyor...</p></div>
-
-    <div class="fp-content" id="fpContent" style="display:none;">
-      <div class="fp-top">
-        <div class="fp-avatar" id="fpAvatar"></div>
-        <div class="fp-info">
-          <h3 id="fpName"></h3>
-          <span class="fp-email" id="fpEmail"></span>
-        </div>
-        <button class="btn-follow" id="fpFollowBtn">Takip Et</button>
-      </div>
-
-      <div class="fp-tabs">
-        <button class="tab-btn active" data-tab="watchlist">İzleme Listesi</button>
-        <button class="tab-btn" data-tab="reviews">Yorumlar</button>
-      </div>
-
-      <div id="fpTabContent">
-        <div class="fp-list" id="fpList">
-          <p class="no-friends">Yükleniyor...</p>
-        </div>
-      </div>
+    <div id="fpList">
+      <div class="loading-state"><div class="loading-spinner"></div><p>Yükleniyor…</p></div>
     </div>
+  </main>
+
+  <div class="particles" aria-hidden="true">
+    <div class="particle"></div><div class="particle"></div>
+    <div class="particle"></div><div class="particle"></div>
+    <div class="particle"></div>
   </div>
+
 {% endblock %}
 
 {% block scripts %}
-  <script>
-    const userId = {{ user_id }};
+<script>
+  const userId = parseInt("{{ user_id }}", 10);
 
-    function escapeHtml(str) {
-      if (!str) return "";
-      const d = document.createElement("div");
-      d.textContent = str;
-      return d.innerHTML;
-    }
+  function escapeHtml(str) {
+    if (!str) return "";
+    const d = document.createElement("div");
+    d.textContent = str;
+    return d.innerHTML;
+  }
 
-    let fpTab = "watchlist";
-    let isFollowing = false;
+  /* Navbar scroll */
+  const header = document.getElementById("site-header");
+  window.addEventListener("scroll", () => {
+    header.classList.toggle("scrolled", window.scrollY > 60);
+  }, { passive: true });
+  document.getElementById("hamburger").addEventListener("click", () => {
+    document.getElementById("headerNav").classList.toggle("open");
+    document.getElementById("hamburger").classList.toggle("active");
+  });
 
-    /* ── Profile Info ── */
-    fetch(`/api/friendships/user/${userId}`)
-      .then(r => { if (!r.ok) throw new Error(); return r.json(); })
-      .then(data => {
-        document.getElementById("loadingProfile").style.display = "none";
-        document.getElementById("fpContent").style.display = "block";
+  let fpTab = "watchlist";
+  let isFollowing = false;
 
-        const username = data.username || data.email || "Kullanıcı";
-        document.getElementById("fpAvatar").textContent = username.charAt(0).toUpperCase();
-        document.getElementById("fpName").textContent = username;
-        document.getElementById("fpEmail").textContent = data.email || "";
-        isFollowing = !!data.is_following;
-        updateFollowBtn();
-        loadFPTab();
-      })
-      .catch(() => {
-        document.getElementById("loadingProfile").innerHTML = '<p class="no-friends" style="color:#e94560;">Profil yüklenemedi.</p>';
-      });
+  /* Profile Info */
+  fetch(`/api/friendships/user/${userId}`)
+    .then(r => { if (!r.ok) throw new Error(); return r.json(); })
+    .then(data => {
+      document.getElementById("loadingProfile").style.display = "none";
+      document.getElementById("fpHeroContent").style.display = "flex";
+      document.getElementById("fpMain").style.display = "block";
 
-    const fpFollowBtn = document.getElementById("fpFollowBtn");
-    fpFollowBtn.addEventListener("click", () => {
-      const method = isFollowing ? "DELETE" : "POST";
-      fetch(`/api/friendships/${userId}`, { method })
-        .then(r => {
-          if (!r.ok) throw new Error();
-          isFollowing = !isFollowing;
-          updateFollowBtn();
-        })
-        .catch(() => {});
+      const username = data.username || data.email || "Kullanıcı";
+      document.getElementById("fpAvatar").textContent = username.charAt(0).toUpperCase();
+      document.getElementById("fpName").textContent = username;
+      document.getElementById("fpEmail").textContent = data.email || "";
+      isFollowing = !!data.is_following;
+      updateFollowBtn();
+      loadFPTab();
+    })
+    .catch(() => {
+      document.getElementById("loadingProfile").innerHTML =
+        '<p style="color:var(--accent)">⚠️ Profil yüklenemedi.</p>';
     });
 
-    function updateFollowBtn() {
-      fpFollowBtn.classList.toggle("is-following", isFollowing);
-      fpFollowBtn.textContent = isFollowing ? "Takipten Çık" : "Takip Et";
-    }
+  const fpFollowBtn = document.getElementById("fpFollowBtn");
+  fpFollowBtn.addEventListener("click", () => {
+    const method = isFollowing ? "DELETE" : "POST";
+    fpFollowBtn.disabled = true;
+    fetch(`/api/friendships/${userId}`, { method })
+      .then(r => { if (!r.ok) throw new Error(); isFollowing = !isFollowing; updateFollowBtn(); })
+      .catch(() => {})
+      .finally(() => { fpFollowBtn.disabled = false; });
+  });
 
-    /* ── Tabs ── */
-    document.querySelectorAll(".fp-tabs .tab-btn").forEach(btn => {
-      btn.addEventListener("click", () => {
-        document.querySelectorAll(".fp-tabs .tab-btn").forEach(b => b.classList.remove("active"));
-        btn.classList.add("active");
-        fpTab = btn.dataset.tab;
-        loadFPTab();
-      });
+  function updateFollowBtn() {
+    fpFollowBtn.classList.toggle("is-following", isFollowing);
+    fpFollowBtn.innerHTML = isFollowing
+      ? `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg> Takipten Çık`
+      : `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg> Takip Et`;
+  }
+
+  /* Tabs */
+  document.querySelectorAll(".tab-pill").forEach(btn => {
+    btn.addEventListener("click", () => {
+      document.querySelectorAll(".tab-pill").forEach(b => b.classList.remove("active"));
+      btn.classList.add("active");
+      fpTab = btn.dataset.tab;
+      loadFPTab();
     });
+  });
 
-    function loadFPTab() {
-      const list = document.getElementById("fpList");
-      list.innerHTML = '<p class="no-friends">Yükleniyor...</p>';
+  function loadFPTab() {
+    const list = document.getElementById("fpList");
+    list.innerHTML = '<div class="loading-state"><div class="loading-spinner"></div><p>Yükleniyor…</p></div>';
 
-      if (fpTab === "watchlist") {
-        fetch(`/api/friendships/user/${userId}/watchlist`)
-          .then(r => { if (!r.ok) throw new Error(); return r.json(); })
-          .then(data => {
-            const items = Array.isArray(data) ? data : (data.items || []);
-            if (!items.length) {
-              list.innerHTML = '<p class="no-friends">İzleme listesi boş.</p>';
-              return;
-            }
-            list.innerHTML = "";
-            items.forEach(s => {
-              const div = document.createElement("div");
-              div.className = "fp-item";
-              div.onclick = () => { window.location.href = `/series/${s.series_id || s.id}`; };
+    const statusMap = {
+      watching:       "İzliyor",
+      completed:      "İzledi",
+      plan_to_watch:  "İzleyecek",
+      dropped:        "Bıraktı"
+    };
 
-              const statusMap = {
-                watching: "İzliyor",
-                completed: "İzledi",
-                plan_to_watch: "İzleyecek",
-                dropped: "Bıraktı"
-              };
-
-              div.innerHTML = `
+    if (fpTab === "watchlist") {
+      fetch(`/api/friendships/user/${userId}/watchlist`)
+        .then(r => { if (!r.ok) throw new Error(); return r.json(); })
+        .then(data => {
+          const items = Array.isArray(data) ? data : (data.items || []);
+          if (!items.length) {
+            list.innerHTML = '<div class="empty-state"><div class="empty-state-icon-wrap"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" opacity="0.4"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="9" y1="9" x2="15" y2="9"/><line x1="9" y1="12" x2="15" y2="12"/><line x1="9" y1="15" x2="13" y2="15"/></svg></div><h3>İzleme listesi boş</h3></div>';
+            return;
+          }
+          list.innerHTML = "";
+          items.forEach((s, i) => {
+            const div = document.createElement("div");
+            div.className = "fp-watchlist-item";
+            div.style.animationDelay = `${i * 35}ms`;
+            div.onclick = () => { window.location.href = `/series/${s.series_id || s.id}`; };
+            div.innerHTML = `
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" class="fp-item-icon"><rect x="2" y="2" width="20" height="20" rx="3"/><path d="m2 12 5-5 4 4 3-3 5 5"/></svg>
+              <div class="fp-item-info">
                 <strong>${escapeHtml(s.series_title || s.title || "Dizi")}</strong>
-                <span class="fp-item-meta">${statusMap[s.status] || s.status || ""}</span>
-              `;
-              list.appendChild(div);
-            });
-          })
-          .catch(() => {
-            list.innerHTML = '<p class="no-friends" style="color:#e94560;">Yüklenirken hata oluştu.</p>';
+              </div>
+              <span class="fp-status-badge">${statusMap[s.status] || s.status || ""}</span>
+            `;
+            list.appendChild(div);
           });
-      } else {
-        fetch(`/api/friendships/user/${userId}/reviews`)
-          .then(r => { if (!r.ok) throw new Error(); return r.json(); })
-          .then(data => {
-            const items = Array.isArray(data) ? data : (data.items || []);
-            if (!items.length) {
-              list.innerHTML = '<p class="no-friends">Henüz yorum yok.</p>';
-              return;
-            }
-            list.innerHTML = "";
-            items.forEach(r => {
-              const div = document.createElement("div");
-              div.className = "fp-item";
-              div.onclick = () => { if (r.series_id) window.location.href = `/series/${r.series_id}`; };
-              div.innerHTML = `
-                <div class="fp-item-top">
-                  <strong>${escapeHtml(r.series_title || "Dizi")}</strong>
-                  ${r.rating ? `<span class="fp-item-rating">⭐ ${r.rating}/10</span>` : ""}
-                </div>
-                ${r.comment || r.text ? `<p class="fp-item-text">${escapeHtml(r.comment || r.text)}</p>` : ""}
-              `;
-              list.appendChild(div);
-            });
-          })
-          .catch(() => {
-            list.innerHTML = '<p class="no-friends" style="color:#e94560;">Yüklenirken hata oluştu.</p>';
+        })
+        .catch(() => {
+          list.innerHTML = '<div class="no-results"><p>⚠️ Yüklenirken hata oluştu.</p></div>';
+        });
+    } else {
+      fetch(`/api/friendships/user/${userId}/reviews`)
+        .then(r => { if (!r.ok) throw new Error(); return r.json(); })
+        .then(data => {
+          const items = Array.isArray(data) ? data : (data.items || []);
+          if (!items.length) {
+            list.innerHTML = '<div class="empty-state"><div class="empty-state-icon-wrap"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" opacity="0.4"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></div><h3>Henüz yorum yok</h3></div>';
+            return;
+          }
+          list.innerHTML = "";
+          items.forEach((r, i) => {
+            const div = document.createElement("div");
+            div.className = "profile-review-item";
+            div.style.animationDelay = `${i * 35}ms`;
+            div.onclick = () => { if (r.series_id) window.location.href = `/series/${r.series_id}`; };
+            div.innerHTML = `
+              <div class="profile-review-top">
+                <strong>${escapeHtml(r.series_title || "Dizi")}</strong>
+                ${r.rating ? `<span class="review-star-badge">${r.rating}/10</span>` : ""}
+              </div>
+              ${r.comment || r.text ? `<p class="profile-review-text">${escapeHtml(r.comment || r.text)}</p>` : ""}
+            `;
+            list.appendChild(div);
           });
-      }
+        })
+        .catch(() => {
+          list.innerHTML = '<div class="no-results"><p>⚠️ Yüklenirken hata oluştu.</p></div>';
+        });
     }
-  </script>
+  }
+</script>
 {% endblock %}

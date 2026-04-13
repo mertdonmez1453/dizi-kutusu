@@ -3,189 +3,245 @@
 {% block title %}Dizi Kutusu — Ayarlar{% endblock %}
 
 {% block head_css %}
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
-  <link rel="stylesheet" href="{{ url_for('static', filename='css/profile.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/pages.css') }}">
 {% endblock %}
 
 {% block body %}
-  <header>
-    <h1><a href="{{ url_for('main.index') }}" class="back-link">← Dizi Kutusu</a></h1>
-    <div>
-      <span class="user-email">{{ session["user"] }}</span>
-      <a href="{{ url_for('auth.logout') }}">Çıkış</a>
+
+  <!-- NAVBAR -->
+  <header id="site-header">
+    <div class="header-inner">
+      <a href="{{ url_for('main.index') }}" class="logo">
+        <span class="logo-icon">🎬</span>
+        <span class="logo-text">Dizi<span class="logo-accent">Kutusu</span></span>
+      </a>
+      <nav class="header-nav" id="headerNav">
+        <a href="{{ url_for('main.feed') }}" class="nav-link">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
+          Aktiviteler
+        </a>
+        <a href="{{ url_for('main.favorites') }}" class="nav-link">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+          Favoriler
+        </a>
+        <a href="{{ url_for('main.compare') }}" class="nav-link">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>
+          Karşılaştır
+        </a>
+        <a href="{{ url_for('main.friends') }}" class="nav-link">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+          Takip
+        </a>
+        <a href="{{ url_for('main.profile') }}" class="nav-link nav-link--profile">
+          <span class="avatar-chip">{{ session["user"][0]|upper if session["user"] else "?" }}</span>
+          <span class="user-email">{{ session["user"] }}</span>
+        </a>
+        <a href="{{ url_for('main.settings') }}" class="nav-link active nav-icon-link" title="Ayarlar">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+        </a>
+        <a href="{{ url_for('auth.logout') }}" class="btn-logout">Çıkış</a>
+      </nav>
+      <button class="hamburger" id="hamburger" aria-label="Menü">
+        <span></span><span></span><span></span>
+      </button>
     </div>
   </header>
 
-  <div class="settings-container">
-    <!-- Şifre Güncelleme -->
-    <div class="settings-card">
-      <h2>Şifre Güncelle</h2>
-      <div class="settings-msg" id="msg"></div>
-      <form class="settings-form" id="passwordForm">
-        <div class="field-group">
-          <label for="currentPassword">Mevcut Şifre</label>
-          <input id="currentPassword" type="password" placeholder="••••••••" required />
-        </div>
-        <div class="field-group">
-          <label for="newPassword">Yeni Şifre</label>
-          <input id="newPassword" type="password" placeholder="En az 6 karakter" required minlength="6" />
-        </div>
-        <div class="field-group">
-          <label for="confirmPassword">Yeni Şifre (Tekrar)</label>
-          <input id="confirmPassword" type="password" placeholder="••••••••" required minlength="6" />
-        </div>
-        <button type="submit" class="btn-save" id="btnSave">Şifreyi Güncelle</button>
-      </form>
+  <!-- PAGE HERO -->
+  <section class="page-hero">
+    <div class="page-hero-bg">
+      <div class="page-hero-orb page-hero-orb--1" style="background:radial-gradient(circle,rgba(124,92,252,0.5),transparent 70%)"></div>
+      <div class="page-hero-orb page-hero-orb--2" style="background:radial-gradient(circle,rgba(233,69,96,0.4),transparent 70%)"></div>
     </div>
-
-    <!-- E-posta Güncelleme -->
-    <div class="settings-card">
-      <h2>E-posta Güncelle</h2>
-      <div class="settings-msg" id="emailMsg"></div>
-      <form class="settings-form" id="emailForm">
-        <div class="field-group">
-          <label for="newEmail">Yeni E-posta</label>
-          <input id="newEmail" type="email" placeholder="yeni@email.com" required />
-        </div>
-        <div class="field-group">
-          <label for="emailPassword">Mevcut Şifre</label>
-          <input id="emailPassword" type="password" placeholder="••••••••" required />
-        </div>
-        <button type="submit" class="btn-save" id="btnEmailSave">E-postayı Güncelle</button>
-      </form>
+    <div class="page-hero-content">
+      <h1 class="page-hero-title">Hesap Ayarları</h1>
+      <p class="page-hero-sub">Profilini ve hesap güvenliğini yönet</p>
     </div>
+  </section>
 
-    <!-- Hesap Silme -->
-    <div class="settings-card danger-card">
-      <h2>Tehlikeli Bölge</h2>
-      <p class="danger-desc">Hesabını silersen tüm verilerin kalıcı olarak kaybolur. Bu işlem geri alınamaz.</p>
-      <button class="btn-danger" id="btnDeleteAccount">Hesabımı Sil</button>
+  <!-- MAIN -->
+  <main class="page-wrap">
+    <div class="settings-grid">
+
+      <!-- Password update -->
+      <div class="settings-card">
+        <div class="settings-card-header">
+          <h2>Şifre Güncelle</h2>
+        </div>
+        <div class="settings-msg" id="msg"></div>
+        <form class="settings-form" id="passwordForm">
+          <div class="field-group">
+            <label for="currentPassword">Mevcut Şifre</label>
+            <input id="currentPassword" type="password" placeholder="••••••••" required />
+          </div>
+          <div class="field-group">
+            <label for="newPassword">Yeni Şifre</label>
+            <input id="newPassword" type="password" placeholder="En az 6 karakter" required minlength="6" />
+          </div>
+          <div class="field-group">
+            <label for="confirmPassword">Yeni Şifre (Tekrar)</label>
+            <input id="confirmPassword" type="password" placeholder="••••••••" required minlength="6" />
+          </div>
+          <button type="submit" class="btn-save" id="btnSave">Şifreyi Güncelle</button>
+        </form>
+      </div>
+
+      <!-- Email update -->
+      <div class="settings-card">
+        <div class="settings-card-header">
+          <h2>E-posta Güncelle</h2>
+        </div>
+        <div class="settings-msg" id="emailMsg"></div>
+        <form class="settings-form" id="emailForm">
+          <div class="field-group">
+            <label for="newEmail">Yeni E-posta</label>
+            <input id="newEmail" type="email" placeholder="yeni@email.com" required />
+          </div>
+          <div class="field-group">
+            <label for="emailPassword">Mevcut Şifre</label>
+            <input id="emailPassword" type="password" placeholder="••••••••" required />
+          </div>
+          <button type="submit" class="btn-save" id="btnEmailSave">E-postayı Güncelle</button>
+        </form>
+      </div>
+
+      <!-- Danger zone -->
+      <div class="settings-card settings-card--danger">
+        <div class="settings-card-header">
+          <h2>Tehlikeli Bölge</h2>
+        </div>
+        <p class="danger-desc">Hesabını silersen tüm verilerin kalıcı olarak kaybolur. Bu işlem geri alınamaz.</p>
+        <button class="btn-danger" id="btnDeleteAccount">Hesabımı Sil</button>
+      </div>
+
     </div>
-  </div>
+  </main>
 
-  <!-- Hesap Silme Modalı -->
-  <div class="delete-overlay" id="deleteOverlay">
+  <!-- Delete Confirm Overlay -->
+  <div class="modal-overlay" id="deleteOverlay">
     <div class="delete-modal">
-      <h3>Hesabını silmek istediğine emin misin?</h3>
-      <p>Bu işlem geri alınamaz. Onaylamak için şifreni gir.</p>
+      <h3>Emin misin?</h3>
+      <p>Bu işlem geri alınamaz. Onaylamak için mevcut şifreni gir.</p>
       <div class="settings-msg" id="deleteMsg"></div>
       <input type="password" id="deletePassword" class="delete-input" placeholder="Mevcut şifren" />
-      <div class="delete-actions">
-        <button class="btn-cancel" id="btnDeleteCancel">Vazgeç</button>
+      <div class="delete-modal-actions">
+        <button class="btn-modal-cancel" id="btnDeleteCancel">Vazgeç</button>
         <button class="btn-danger" id="btnDeleteConfirm">Evet, Hesabımı Sil</button>
       </div>
     </div>
   </div>
+
+  <div class="particles" aria-hidden="true">
+    <div class="particle"></div><div class="particle"></div>
+    <div class="particle"></div><div class="particle"></div>
+    <div class="particle"></div>
+  </div>
+
 {% endblock %}
 
 {% block scripts %}
-  <script>
-    function showMsg(el, text, type) {
-      el.textContent = text;
-      el.className = "settings-msg " + type;
-      setTimeout(() => { el.className = "settings-msg"; }, 4000);
-    }
+<script>
+  /* Navbar scroll */
+  const header = document.getElementById("site-header");
+  window.addEventListener("scroll", () => {
+    header.classList.toggle("scrolled", window.scrollY > 60);
+  }, { passive: true });
+  document.getElementById("hamburger").addEventListener("click", () => {
+    document.getElementById("headerNav").classList.toggle("open");
+    document.getElementById("hamburger").classList.toggle("active");
+  });
 
-    /* ── Şifre Güncelleme ── */
-    const pwForm = document.getElementById("passwordForm");
-    const pwMsg = document.getElementById("msg");
-    const pwBtn = document.getElementById("btnSave");
+  function showMsg(el, text, type) {
+    el.textContent = text;
+    el.className = "settings-msg " + type;
+    setTimeout(() => { el.className = "settings-msg"; el.textContent = ""; }, 4500);
+  }
 
-    pwForm.addEventListener("submit", e => {
-      e.preventDefault();
-      const cur = document.getElementById("currentPassword").value;
-      const np = document.getElementById("newPassword").value;
-      const cp = document.getElementById("confirmPassword").value;
+  /* Password update */
+  const pwForm = document.getElementById("passwordForm");
+  const pwMsg  = document.getElementById("msg");
+  const pwBtn  = document.getElementById("btnSave");
 
-      if (np !== cp) { showMsg(pwMsg, "Yeni şifreler eşleşmiyor.", "error"); return; }
-
-      pwBtn.disabled = true;
-      pwBtn.textContent = "Güncelleniyor...";
-
-      fetch("/api/settings/password", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ current_password: cur, new_password: np })
+  pwForm.addEventListener("submit", e => {
+    e.preventDefault();
+    const cur = document.getElementById("currentPassword").value;
+    const np  = document.getElementById("newPassword").value;
+    const cp  = document.getElementById("confirmPassword").value;
+    if (np !== cp) { showMsg(pwMsg, "Yeni şifreler eşleşmiyor.", "error"); return; }
+    pwBtn.disabled = true; pwBtn.textContent = "Güncelleniyor…";
+    fetch("/api/settings/password", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ current_password: cur, new_password: np })
+    })
+      .then(r => r.json().then(d => ({ ok: r.ok, d })))
+      .then(({ ok, d }) => {
+        if (!ok) throw new Error(d.error || "Bir hata oluştu.");
+        showMsg(pwMsg, d.message, "success"); pwForm.reset();
       })
-        .then(r => r.json().then(data => ({ ok: r.ok, data })))
-        .then(({ ok, data }) => {
-          if (!ok) throw new Error(data.error || "Bir hata oluştu.");
-          showMsg(pwMsg, data.message, "success");
-          pwForm.reset();
-        })
-        .catch(err => showMsg(pwMsg, err.message, "error"))
-        .finally(() => { pwBtn.disabled = false; pwBtn.textContent = "Şifreyi Güncelle"; });
-    });
+      .catch(err => showMsg(pwMsg, err.message, "error"))
+      .finally(() => { pwBtn.disabled = false; pwBtn.textContent = "Şifreyi Güncelle"; });
+  });
 
-    /* ── E-posta Güncelleme ── */
-    const emailForm = document.getElementById("emailForm");
-    const emailMsg = document.getElementById("emailMsg");
-    const emailBtn = document.getElementById("btnEmailSave");
+  /* Email update */
+  const emailForm = document.getElementById("emailForm");
+  const emailMsg  = document.getElementById("emailMsg");
+  const emailBtn  = document.getElementById("btnEmailSave");
 
-    emailForm.addEventListener("submit", e => {
-      e.preventDefault();
-      const newEmail = document.getElementById("newEmail").value.trim();
-      const password = document.getElementById("emailPassword").value;
-
-      emailBtn.disabled = true;
-      emailBtn.textContent = "Güncelleniyor...";
-
-      fetch("/api/settings/email", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email: newEmail, current_password: password })
+  emailForm.addEventListener("submit", e => {
+    e.preventDefault();
+    const newEmail = document.getElementById("newEmail").value.trim();
+    const password = document.getElementById("emailPassword").value;
+    emailBtn.disabled = true; emailBtn.textContent = "Güncelleniyor…";
+    fetch("/api/settings/email", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email: newEmail, current_password: password })
+    })
+      .then(r => r.json().then(d => ({ ok: r.ok, d })))
+      .then(({ ok, d }) => {
+        if (!ok) throw new Error(d.error || "Bir hata oluştu.");
+        showMsg(emailMsg, d.message || "E-posta güncellendi.", "success"); emailForm.reset();
       })
-        .then(r => r.json().then(data => ({ ok: r.ok, data })))
-        .then(({ ok, data }) => {
-          if (!ok) throw new Error(data.error || "Bir hata oluştu.");
-          showMsg(emailMsg, data.message || "E-posta güncellendi.", "success");
-          emailForm.reset();
-        })
-        .catch(err => showMsg(emailMsg, err.message, "error"))
-        .finally(() => { emailBtn.disabled = false; emailBtn.textContent = "E-postayı Güncelle"; });
-    });
+      .catch(err => showMsg(emailMsg, err.message, "error"))
+      .finally(() => { emailBtn.disabled = false; emailBtn.textContent = "E-postayı Güncelle"; });
+  });
 
-    /* ── Hesap Silme ── */
-    const overlay = document.getElementById("deleteOverlay");
-    const deleteMsg = document.getElementById("deleteMsg");
+  /* Delete account */
+  const overlay   = document.getElementById("deleteOverlay");
+  const deleteMsg = document.getElementById("deleteMsg");
 
-    document.getElementById("btnDeleteAccount").addEventListener("click", () => {
-      overlay.classList.add("open");
-      document.getElementById("deletePassword").value = "";
-      deleteMsg.className = "settings-msg";
-    });
+  document.getElementById("btnDeleteAccount").addEventListener("click", () => {
+    overlay.classList.add("open");
+    document.getElementById("deletePassword").value = "";
+    deleteMsg.className = "settings-msg"; deleteMsg.textContent = "";
+  });
+  document.getElementById("btnDeleteCancel").addEventListener("click", () => overlay.classList.remove("open"));
+  overlay.addEventListener("click", e => { if (e.target === overlay) overlay.classList.remove("open"); });
 
-    document.getElementById("btnDeleteCancel").addEventListener("click", () => {
-      overlay.classList.remove("open");
-    });
-
-    overlay.addEventListener("click", e => {
-      if (e.target === overlay) overlay.classList.remove("open");
-    });
-
-    document.getElementById("btnDeleteConfirm").addEventListener("click", () => {
-      const password = document.getElementById("deletePassword").value;
-      if (!password) { showMsg(deleteMsg, "Şifre gerekli.", "error"); return; }
-
-      const btn = document.getElementById("btnDeleteConfirm");
-      btn.disabled = true;
-      btn.textContent = "Siliniyor...";
-
-      fetch("/api/settings/account", {
-        method: "DELETE",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ current_password: password })
+  document.getElementById("btnDeleteConfirm").addEventListener("click", () => {
+    const password = document.getElementById("deletePassword").value;
+    if (!password) { showMsg(deleteMsg, "Şifre gerekli.", "error"); return; }
+    const btn = document.getElementById("btnDeleteConfirm");
+    btn.disabled = true; btn.textContent = "Siliniyor…";
+    fetch("/api/settings/account", {
+      method: "DELETE",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ current_password: password })
+    })
+      .then(r => r.json().then(d => ({ ok: r.ok, d })))
+      .then(({ ok, d }) => {
+        if (!ok) throw new Error(d.error || "Bir hata oluştu.");
+        window.location.href = "/";
       })
-        .then(r => r.json().then(data => ({ ok: r.ok, data })))
-        .then(({ ok, data }) => {
-          if (!ok) throw new Error(data.error || "Bir hata oluştu.");
-          window.location.href = "/";
-        })
-        .catch(err => {
-          showMsg(deleteMsg, err.message, "error");
-          btn.disabled = false;
-          btn.textContent = "Evet, Hesabımı Sil";
-        });
-    });
-  </script>
+      .catch(err => {
+        showMsg(deleteMsg, err.message, "error");
+        btn.disabled = false; btn.textContent = "Evet, Hesabımı Sil";
+      });
+  });
+</script>
 {% endblock %}

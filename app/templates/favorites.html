@@ -3,65 +3,157 @@
 {% block title %}Favori Dizilerim — Dizi Kutusu{% endblock %}
 
 {% block head_css %}
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/pages.css') }}">
 {% endblock %}
 
 {% block body %}
-  <header>
-    <h1><a href="{{ url_for('main.index') }}" class="back-link">← Dizi Kutusu</a></h1>
-    <nav class="header-nav">
-      <span class="user-email">{{ session["user"] }}</span>
-      <a href="{{ url_for('auth.logout') }}" class="logout-link">Çıkış</a>
-    </nav>
+
+  <!-- NAVBAR -->
+  <header id="site-header">
+    <div class="header-inner">
+      <a href="{{ url_for('main.index') }}" class="logo">
+        <span class="logo-icon">🎬</span>
+        <span class="logo-text">Dizi<span class="logo-accent">Kutusu</span></span>
+      </a>
+      <nav class="header-nav" id="headerNav">
+        <a href="{{ url_for('main.feed') }}" class="nav-link">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
+          Aktiviteler
+        </a>
+        <a href="{{ url_for('main.favorites') }}" class="nav-link active">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+          Favoriler
+        </a>
+        <a href="{{ url_for('main.compare') }}" class="nav-link">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>
+          Karşılaştır
+        </a>
+        <a href="{{ url_for('main.friends') }}" class="nav-link">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+          Takip
+        </a>
+        <a href="{{ url_for('main.profile') }}" class="nav-link nav-link--profile">
+          <span class="avatar-chip">{{ session["user"][0]|upper if session["user"] else "?" }}</span>
+          <span class="user-email">{{ session["user"] }}</span>
+        </a>
+        <a href="{{ url_for('main.settings') }}" class="nav-link nav-icon-link" title="Ayarlar">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+        </a>
+        <a href="{{ url_for('auth.logout') }}" class="btn-logout">Çıkış</a>
+      </nav>
+      <button class="hamburger" id="hamburger" aria-label="Menü">
+        <span></span><span></span><span></span>
+      </button>
+    </div>
   </header>
 
-  <h2 class="section-title">Favori Dizilerim</h2>
-  <div id="loading">Yükleniyor...</div>
-  <div class="grid" id="grid"></div>
+  <!-- PAGE HERO -->
+  <section class="page-hero">
+    <div class="page-hero-bg">
+      <div class="page-hero-orb page-hero-orb--1"></div>
+      <div class="page-hero-orb page-hero-orb--2"></div>
+    </div>
+    <div class="page-hero-content">
+      <h1 class="page-hero-title">Favori Dizilerim</h1>
+      <p class="page-hero-sub">Beğendiğin dizileri bir arada tut</p>
+    </div>
+  </section>
+
+  <!-- MAIN -->
+  <main class="page-wrap">
+    <div id="loading" class="loading-state">
+      <div class="loading-spinner"></div>
+      <p>Favoriler yükleniyor…</p>
+    </div>
+
+    <div class="grid" id="grid"></div>
+  </main>
+
+  <div class="particles" aria-hidden="true">
+    <div class="particle"></div><div class="particle"></div>
+    <div class="particle"></div><div class="particle"></div>
+    <div class="particle"></div>
+  </div>
+
 {% endblock %}
 
 {% block scripts %}
-  <script>
-    function esc(str) {
-      const d = document.createElement("div");
-      d.textContent = str;
-      return d.innerHTML;
-    }
+<script>
+  function esc(str) {
+    const d = document.createElement("div");
+    d.textContent = str ?? "";
+    return d.innerHTML;
+  }
 
-    fetch("/api/favorites/")
-      .then(r => { if (!r.ok) throw new Error(); return r.json(); })
-      .then(data => {
-        document.getElementById("loading").style.display = "none";
-        const items = Array.isArray(data) ? data : (data.items || []);
+  /* Navbar scroll */
+  const header = document.getElementById("site-header");
+  window.addEventListener("scroll", () => {
+    header.classList.toggle("scrolled", window.scrollY > 60);
+  }, { passive: true });
 
-        if (!items.length) {
-          document.getElementById("grid").innerHTML =
-            '<p class="no-results">Henüz favori dizin yok. Dizi detay sayfasından favorilere ekleyebilirsin.</p>';
-          return;
-        }
+  /* Hamburger */
+  document.getElementById("hamburger").addEventListener("click", () => {
+    document.getElementById("headerNav").classList.toggle("open");
+    document.getElementById("hamburger").classList.toggle("active");
+  });
 
-        const grid = document.getElementById("grid");
-        items.forEach(s => {
-          const card = document.createElement("div");
-          card.className = "card";
-          card.onclick = () => { window.location.href = `/series/${s.series_id || s.id}`; };
-          card.innerHTML = `
-            ${s.image_url
-              ? `<img src="${esc(s.image_url)}" alt="${esc(s.title || s.series_title || '')}" />`
-              : `<div class="no-img">Görsel yok</div>`}
-            <div class="info">
-              <h3 title="${esc(s.title || s.series_title || '')}">${esc(s.title || s.series_title || 'Bilinmeyen')}</h3>
-              <span>${esc(String(s.release_year || "?"))} · ${esc(s.genre || "")}</span>
-              ${s.rating ? `<span class="rating"> ⭐ ${esc(String(s.rating))}</span>` : ""}
+  fetch("/api/favorites/")
+    .then(r => { if (!r.ok) throw new Error(); return r.json(); })
+    .then(data => {
+      document.getElementById("loading").style.display = "none";
+      const items = Array.isArray(data) ? data : (data.items || []);
+      const grid = document.getElementById("grid");
+
+      if (!items.length) {
+        grid.innerHTML = `
+          <div class="empty-state">
+            <div class="empty-state-icon-wrap">
+              <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" opacity="0.4"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
             </div>
-          `;
-          grid.appendChild(card);
-        });
-      })
-      .catch(() => {
-        document.getElementById("loading").style.display = "none";
-        document.getElementById("grid").innerHTML =
-          '<p id="load-error">Favoriler yüklenirken bir hata oluştu.</p>';
+            <h3>Henüz favori dizin yok</h3>
+            <p>Dizi detay sayfasından <strong>❤ Favorilere Ekle</strong> butonuna basarak favorilerini oluşturabilirsin.</p>
+            <a href="/" class="btn-empty">Dizileri Keşfet</a>
+          </div>`;
+        return;
+      }
+
+      items.forEach((s, i) => {
+        const card = document.createElement("div");
+        card.className = "card";
+        card.style.animationDelay = `${i * 30}ms`;
+        card.onclick = () => { window.location.href = `/series/${s.series_id || s.id}`; };
+        card.innerHTML = `
+          <div class="card-img-wrap">
+            ${s.image_url
+              ? `<img src="${esc(s.image_url)}" alt="${esc(s.title || s.series_title || '')}" loading="lazy" />`
+              : `<div class="no-img"><svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="2" width="20" height="20" rx="3"/><path d="m2 12 5-5 4 4 3-3 5 5"/></svg></div>`}
+            <div class="card-overlay">
+              <button class="card-play-btn" aria-label="Detaya git">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+              </button>
+            </div>
+            <div class="fav-heart-badge">❤</div>
+            ${s.rating ? `<div class="card-rating-badge">⭐ ${esc(String(s.rating))}</div>` : ""}
+          </div>
+          <div class="info">
+            <h3 title="${esc(s.title || s.series_title || '')}">${esc(s.title || s.series_title || 'Bilinmeyen')}</h3>
+            <div class="card-meta-row">
+              <span class="meta-year">${esc(String(s.release_year || "?"))}</span>
+              ${s.genre ? `<span class="meta-genre">${esc(s.genre)}</span>` : ""}
+            </div>
+          </div>
+        `;
+        grid.appendChild(card);
       });
-  </script>
+    })
+    .catch(() => {
+      document.getElementById("loading").style.display = "none";
+      document.getElementById("grid").innerHTML =
+        '<div class="no-results" id="load-error"><p>⚠️ Favoriler yüklenirken bir hata oluştu.</p></div>';
+    });
+</script>
 {% endblock %}
