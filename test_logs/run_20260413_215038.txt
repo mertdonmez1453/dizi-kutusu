@@ -1,0 +1,195 @@
+================================================================================
+TEST RUN STARTED AT: 2026-04-13 21:50:38
+================================================================================
+--- Register Page Display ---
+  > Input / Req : GET request to /register endpoint
+  > Expected    : HTTP 200 OK and registration form visible
+  > Actual      : HTTP 200, Form text found: True
+  > Result      : [PASS] -- Took 9.00 ms
+--------------------------------------------------------------------------------
+--- Login Page Display ---
+  > Input / Req : GET request to /login endpoint
+  > Expected    : HTTP 200 OK and login form visible
+  > Actual      : HTTP 200, Form text found: True
+  > Result      : [PASS] -- Took 5.01 ms
+--------------------------------------------------------------------------------
+--- Valid Registration ---
+  > Input / Req : POST to /register with valid email & password
+  > Expected    : Account created in database and hashed password matches
+  > Actual      : HTTP 200, User saved to DB: True, Password match: True
+  > Result      : [PASS] -- Took 188.28 ms
+--------------------------------------------------------------------------------
+--- Invalid Email Registration ---
+  > Input / Req : POST to /register with badly formatted email
+  > Expected    : Registration rejected; no user added to database
+  > Actual      : Database user creation blocked: True
+  > Result      : [PASS] -- Took 6.88 ms
+--------------------------------------------------------------------------------
+--- Duplicate Registration ---
+  > Input / Req : POST to /register with an already existing email
+  > Expected    : Registration rejected; no duplicate user and original password preserved
+  > Actual      : Duplicate prevented: True, Password preserved: True
+  > Result      : [PASS] -- Took 91.82 ms
+--------------------------------------------------------------------------------
+--- Valid Login ---
+  > Input / Req : POST to /login with correct registered email & password
+  > Expected    : HTTP 200 OK and user email saved inside Session
+  > Actual      : HTTP 200, Session user active: login@example.com
+  > Result      : [PASS] -- Took 91.51 ms
+--------------------------------------------------------------------------------
+--- Invalid Login Password ---
+  > Input / Req : POST to /login with correct email but wrong password
+  > Expected    : Login blocked; Session remains empty
+  > Actual      : Session user active: None (Expected None)
+  > Result      : [PASS] -- Took 88.11 ms
+--------------------------------------------------------------------------------
+--- Unknown User Login ---
+  > Input / Req : POST to /login with unregistered email address
+  > Expected    : Login blocked; Session remains empty
+  > Actual      : Session user active: None (Expected None)
+  > Result      : [PASS] -- Took 6.43 ms
+--------------------------------------------------------------------------------
+--- User Logout ---
+  > Input / Req : GET request to /logout with active logged-in Session
+  > Expected    : Session cleared of user data successfully
+  > Actual      : Session user active: None (Expected None)
+  > Result      : [PASS] -- Took 6.18 ms
+--------------------------------------------------------------------------------
+--- TC-FAV-01 | Add to Favorites ---
+  > Input / Req : POST /api/favorites/1 (oturum açık)
+  > Expected    : HTTP 201 and success message
+  > Actual      : HTTP 201, Body: {'message': 'Favorilere eklendi.'}
+  > Result      : [PASS] -- Took 3.52 ms
+--------------------------------------------------------------------------------
+--- TC-FAV-02 | Duplicate Favorite Add ---
+  > Input / Req : POST /api/favorites/1 (zaten favorilerde)
+  > Expected    : HTTP 409 Conflict
+  > Actual      : HTTP 409, Body: {'error': 'Bu dizi zaten favorilerinizde.'}
+  > Result      : [PASS] -- Took 4.47 ms
+--------------------------------------------------------------------------------
+--- TC-FAV-03 | Remove from Favorites ---
+  > Input / Req : DELETE /api/favorites/1
+  > Expected    : HTTP 200 and success message
+  > Actual      : HTTP 200, Body: {'message': 'Favorilerden kaldırıldı.'}
+  > Result      : [PASS] -- Took 4.59 ms
+--------------------------------------------------------------------------------
+--- TC-FAV-04 | Add Favorite Without Auth ---
+  > Input / Req : POST /api/favorites/1 (oturum yok)
+  > Expected    : HTTP 401 Unauthorized
+  > Actual      : HTTP 401, Body: {'error': 'Oturum açmanız gerekiyor.'}
+  > Result      : [PASS] -- Took 0.48 ms
+--------------------------------------------------------------------------------
+--- TC-FAV-05 | Remove Non-Existent Favorite ---
+  > Input / Req : DELETE /api/favorites/1 (favorilerde yok)
+  > Expected    : HTTP 404 Not Found
+  > Actual      : HTTP 404, Body: {'error': 'Bu dizi favorilerinizde değil.'}
+  > Result      : [PASS] -- Took 6.15 ms
+--------------------------------------------------------------------------------
+--- TC-FR-01 | Follow User ---
+  > Input / Req : POST /api/friendships/follow/2
+  > Expected    : HTTP 201 and success message
+  > Actual      : HTTP 201, Body: {'message': "'userb' takip edildi."}
+  > Result      : [PASS] -- Took 3.24 ms
+--------------------------------------------------------------------------------
+--- TC-FR-02 | Duplicate Follow ---
+  > Input / Req : POST /api/friendships/follow/2 (zaten takipte)
+  > Expected    : HTTP 200 OK
+  > Actual      : HTTP 200, Body: {'message': "'userb' zaten takip ediliyor."}
+  > Result      : [PASS] -- Took 3.91 ms
+--------------------------------------------------------------------------------
+--- TC-FR-03 | Follow Self ---
+  > Input / Req : POST /api/friendships/follow/1 (kendi id'si)
+  > Expected    : HTTP 400 and 'Kendinizi takip edemezsiniz.' error
+  > Actual      : HTTP 400, Body: {'error': 'Kendinizi takip edemezsiniz.'}
+  > Result      : [PASS] -- Took 1.51 ms
+--------------------------------------------------------------------------------
+--- TC-FR-04 | Unfollow User ---
+  > Input / Req : DELETE /api/friendships/unfollow/2
+  > Expected    : HTTP 200 and success message
+  > Actual      : HTTP 200, Body: {'message': 'Takipten çıkıldı.'}
+  > Result      : [PASS] -- Took 4.29 ms
+--------------------------------------------------------------------------------
+--- TC-FR-05 | View Watchlist Without Following ---
+  > Input / Req : GET /api/friendships/2/watchlist (takip yok)
+  > Expected    : HTTP 403 Forbidden
+  > Actual      : HTTP 403, Body: {'error': 'Bu kullanıcının listesini görmek için takip etmelisiniz.'}
+  > Result      : [PASS] -- Took 2.14 ms
+--------------------------------------------------------------------------------
+--- TC-REV-01 | Rate Series (Valid) ---
+  > Input / Req : POST /api/series/1/rate {rating: 8.5}
+  > Expected    : HTTP 200 and site_rating=8.5
+  > Actual      : HTTP 200, Body: {'message': 'Puan kaydedildi.', 'site_rating': 8.5}
+  > Result      : [PASS] -- Took 4.39 ms
+--------------------------------------------------------------------------------
+--- TC-REV-02 | Rate Series Out of Range ---
+  > Input / Req : POST /api/series/1/rate {rating: 11}
+  > Expected    : HTTP 400 Bad Request
+  > Actual      : HTTP 400, Body: {'error': 'Puan 1 ile 10 arasında olmalıdır.'}
+  > Result      : [PASS] -- Took 1.72 ms
+--------------------------------------------------------------------------------
+--- TC-REV-03 | Rate Series Missing Field ---
+  > Input / Req : POST /api/series/1/rate {} (boş body)
+  > Expected    : HTTP 400 Bad Request
+  > Actual      : HTTP 400, Body: {'error': 'Puan değeri gerekli.'}
+  > Result      : [PASS] -- Took 1.68 ms
+--------------------------------------------------------------------------------
+--- TC-REV-04 | Update Existing Rating ---
+  > Input / Req : POST /api/series/1/rate {rating: 9.0} (ikinci kez)
+  > Expected    : HTTP 200 and site_rating=9.0 (güncellenmiş)
+  > Actual      : HTTP 200, Body: {'message': 'Puan kaydedildi.', 'site_rating': 9.0}
+  > Result      : [PASS] -- Took 5.33 ms
+--------------------------------------------------------------------------------
+--- TC-REV-05 | Rate Series Without Auth ---
+  > Input / Req : POST /api/series/1/rate (oturum yok)
+  > Expected    : HTTP 401 Unauthorized
+  > Actual      : HTTP 401, Body: {'error': 'Oturum açmanız gerekiyor.'}
+  > Result      : [PASS] -- Took 0.48 ms
+--------------------------------------------------------------------------------
+--- TC-SER-01 | Series Search by Title ---
+  > Input / Req : GET /api/series/search?q=Breaking
+  > Expected    : HTTP 200 and 'Breaking Bad' in results
+  > Actual      : HTTP 200, Titles: ['Breaking Bad']
+  > Result      : [PASS] -- Took 3.46 ms
+--------------------------------------------------------------------------------
+--- TC-SER-02 | Series Search Without Params ---
+  > Input / Req : GET /api/series/search (parametre yok)
+  > Expected    : HTTP 400 and error message in response
+  > Actual      : HTTP 400, Body: {'error': 'En az bir arama/filtre parametresi gerekli.'}
+  > Result      : [PASS] -- Took 0.45 ms
+--------------------------------------------------------------------------------
+--- TC-SER-03 | Series Search by Genre ---
+  > Input / Req : GET /api/series/search?genre=Sci-Fi
+  > Expected    : HTTP 200, only Sci-Fi results
+  > Actual      : HTTP 200, Genres: ['Sci-Fi']
+  > Result      : [PASS] -- Took 3.79 ms
+--------------------------------------------------------------------------------
+--- TC-WL-01 | Add to Watchlist ---
+  > Input / Req : POST /api/watchlist/1 (oturum açık)
+  > Expected    : HTTP 201 and success message
+  > Actual      : HTTP 201, Body: {'message': 'İzleme listesine eklendi.'}
+  > Result      : [PASS] -- Took 3.13 ms
+--------------------------------------------------------------------------------
+--- TC-WL-02 | Duplicate Watchlist Add ---
+  > Input / Req : POST /api/watchlist/1 (zaten listede)
+  > Expected    : HTTP 409 Conflict
+  > Actual      : HTTP 409, Body: {'error': 'Bu dizi zaten listenizde.'}
+  > Result      : [PASS] -- Took 3.85 ms
+--------------------------------------------------------------------------------
+--- TC-WL-03 | Watchlist Without Auth ---
+  > Input / Req : POST /api/watchlist/1 (oturum yok)
+  > Expected    : HTTP 401 Unauthorized
+  > Actual      : HTTP 401, Body: {'error': 'Oturum açmanız gerekiyor.'}
+  > Result      : [PASS] -- Took 0.44 ms
+--------------------------------------------------------------------------------
+--- TC-WL-04 | Remove from Watchlist ---
+  > Input / Req : DELETE /api/watchlist/1
+  > Expected    : HTTP 200 and success message
+  > Actual      : HTTP 200, Body: {'message': 'İzleme listesinden kaldırıldı.'}
+  > Result      : [PASS] -- Took 4.13 ms
+--------------------------------------------------------------------------------
+--- TC-WL-05 | Update Watchlist Status ---
+  > Input / Req : PUT /api/watchlist/1/status {status: watching}
+  > Expected    : HTTP 200 and status='watching'
+  > Actual      : HTTP 200, Body: {'message': "Durum 'watching' olarak güncellendi.", 'status': 'watching'}
+  > Result      : [PASS] -- Took 4.25 ms
+--------------------------------------------------------------------------------

@@ -1,0 +1,63 @@
+================================================================================
+SCENARIO TEST RUN STARTED AT: 2026-04-13 22:07:24
+================================================================================
+[[PASS]] --- USE CASE 1 ---
+  > Step        : Kullanıcı Signup/Kayıt formunu doldurur ve hesap oluşturulur
+  > Expected    : HTTP 200/Redirect ve Veritabanında Kullanıcı oluşmalı
+  > Actual      : Durum: 200, DB'de kullanıcı var mı: True
+  > Time        : 169.20 ms
+--------------------------------------------------------------------------------
+[[PASS]] --- USE CASE 1 ---
+  > Step        : Kullanıcı yeni bilgileriyle Login olur
+  > Expected    : HTTP 200/Redirect ve Session'a email kaydedilmeli
+  > Actual      : Session'daki Email: yeni@test.com
+  > Time        : 0.00 ms
+--------------------------------------------------------------------------------
+[[PASS]] --- USE CASE 1 ---
+  > Step        : Ana sayfaya yönlendirilir ve gezintiye başlar
+  > Expected    : HTTP 200 ve Ana sayfada profili görmeli
+  > Actual      : HTTP Status: 200, Email sayfada geçiyor mu: True
+  > Time        : 0.00 ms
+--------------------------------------------------------------------------------
+[[PASS]] --- USE CASE 2 ---
+  > Step        : Kullanıcı arama kutusuna 'break' yazar (eksik/yanlış)
+  > Expected    : Sistem ilike ile 'Breaking Bad' dizisini döndürmeli
+  > Actual      : Gelen Sonuçlar: ['Breaking Bad']
+  > Time        : 3.11 ms
+--------------------------------------------------------------------------------
+[[FAIL]] --- USE CASE 2 ---
+  > Step        : Kullanıcı çıkan sonuca tıklar ve detay sayfasını açar
+  > Expected    : Dizi detay sayfasının HTML'i doğru render edilmeli
+  > Actual      : HTTP Status: 302, HTML'de başlık bulundu: False
+  > Time        : 0.00 ms
+--------------------------------------------------------------------------------
+[[PASS]] --- USE CASE 3 ---
+  > Step        : Kullanıcı diziyi izleme listesine ekler
+  > Expected    : HTTP 201 Created alınmalı
+  > Actual      : HTTP Status: 201
+  > Time        : 3.73 ms
+--------------------------------------------------------------------------------
+[[PASS]] --- USE CASE 3 ---
+  > Step        : Kullanıcı dizinin durumunu 'completed' (İzledi) olarak seçer
+  > Expected    : HTTP 200 OK ve status completed güncellenmeli
+  > Actual      : HTTP Status: 200
+  > Time        : 0.00 ms
+--------------------------------------------------------------------------------
+[[PASS]] --- USE CASE 4 ---
+  > Step        : Kullanıcı 'mehmet'i arar ve takip et (follow) butonuna tıklar
+  > Expected    : HTTP 200 veya 201 ile friendship tablosuna bağ kurulmalı
+  > Actual      : HTTP Status: 201, Response: {'message': "'mehmet' takip edildi."}
+  > Time        : 4.24 ms
+--------------------------------------------------------------------------------
+[[PASS]] --- USE CASE 4 ---
+  > Step        : Takip edilen arkadaşın profiline girer ve İzleme Listesini çeker
+  > Expected    : HTTP 200 ve listeye eklenmiş dizileri dönmeli ('completed')
+  > Actual      : Gelen Watchlist Uzunluğu: 1
+  > Time        : 0.00 ms
+--------------------------------------------------------------------------------
+[[FAIL]] --- USE CASE 4 ---
+  > Step        : Kullanıcı ana sayfasına /feed (Aktiviteler) düşer
+  > Expected    : HTTP 200 OK ve arkadaşının adı (mehmet) aktivitelerde yer almalı
+  > Actual      : HTTP Status: 200, 'mehmet' kelimesi feed'de var: False
+  > Time        : 0.00 ms
+--------------------------------------------------------------------------------
