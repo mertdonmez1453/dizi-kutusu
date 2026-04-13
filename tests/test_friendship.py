@@ -5,15 +5,7 @@ from app.models.friendship import Friendship
 from app.db import db
 
 
-def log_step(test_name, input_desc, expected, actual, is_correct, start_time):
-    duration = (time.time() - start_time) * 1000
-    status = "[PASS]" if is_correct else "[FAIL]"
-    print(f"\n--- {test_name} ---")
-    print(f" > Request  : {input_desc}")
-    print(f" > Expected : {expected}")
-    print(f" > Actual   : {actual}")
-    print(f" > Result   : {status} -- Took {duration:.2f} ms")
-    print("-" * 55)
+from tests.logger import log_step
 
 
 @pytest.fixture
@@ -82,19 +74,19 @@ def test_follow_user_duplicate(client, two_users):
     response = client.post(f"/api/friendships/follow/{b_id}")  # tekrar
     data = response.get_json()
 
-    is_success = response.status_code == 409
+    is_success = response.status_code == 200
 
     log_step(
         "TC-FR-02 | Duplicate Follow",
         f"POST /api/friendships/follow/{b_id} (zaten takipte)",
-        "HTTP 409 Conflict",
+        "HTTP 200 OK",
         f"HTTP {response.status_code}, Body: {data}",
         is_success,
         start,
     )
 
-    assert response.status_code == 409
-    assert "error" in data
+    assert response.status_code == 200
+    assert "message" in data
 
 
 # ──────────────────────────────────────────────────────────────

@@ -4,15 +4,7 @@ from app.models.series import Series
 from app.db import db
 
 
-def log_step(test_name, input_desc, expected, actual, is_correct, start_time):
-    duration = (time.time() - start_time) * 1000
-    status = "[PASS]" if is_correct else "[FAIL]"
-    print(f"\n--- {test_name} ---")
-    print(f" > Request  : {input_desc}")
-    print(f" > Expected : {expected}")
-    print(f" > Actual   : {actual}")
-    print(f" > Result   : {status} -- Took {duration:.2f} ms")
-    print("-" * 55)
+from tests.logger import log_step
 
 
 def make_series(**kwargs):
