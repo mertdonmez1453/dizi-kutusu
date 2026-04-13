@@ -3,79 +3,79 @@
 {% block title %}Dizi Kutusu — Login{% endblock %}
 
 {% block head_css %}
-  <link rel="stylesheet" href="{{ url_for('static', filename='css/auth.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/auth.css') }}">
 {% endblock %}
 
 {% block body %}
-  <div class="page">
-    <header class="nav">
-      <div class="container nav-inner">
-        <div class="brand">
-          <span class="brand-dot" aria-hidden="true"></span>
-          <span>Dizi Kutusu</span>
-        </div>
-
-        <nav class="nav-links">
-          <a href="{{ url_for('auth.login') }}">LOG IN</a>
-          <a href="{{ url_for('auth.register') }}">CREATE ACCOUNT</a>
-        </nav>
+<div class="page">
+  <header class="nav">
+    <div class="container nav-inner">
+      <div class="brand">
+        <span class="brand-dot" aria-hidden="true"></span>
+        <span>Dizi Kutusu</span>
       </div>
-    </header>
 
-    <main class="hero">
-      <div class="hero-card">
-        <h1 class="hero-title">
-          Dizileri takip et.<br>
-          İzlemek istediklerini kaydet.<br>
-          Arkadaşlarınla paylaş.
-        </h1>
+      <nav class="nav-links">
+        <a href="{{ url_for('auth.login') }}">LOG IN</a>
+        <a href="{{ url_for('auth.register') }}">CREATE ACCOUNT</a>
+      </nav>
+    </div>
+  </header>
 
-        <p class="hero-sub">
-          Dizi severler için sosyal dizi kutusu. (Letterboxd tarzı landing)
-        </p>
+  <main class="hero">
+    <div class="hero-card">
+      <h1 class="hero-title">
+        Dizileri takip et.<br>
+        İzlemek istediklerini kaydet.<br>
+        Arkadaşlarınla paylaş.
+      </h1>
 
-        <div class="cta-row">
-          <a class="btn btn-primary" href="#login-form">Get started — it's free!</a>
-          <a class="btn btn-ghost" href="{{ url_for('auth.register') }}">Create account</a>
-        </div>
+      <p class="hero-sub">
+        Dizi severler için sosyal dizi kutusu.
+      </p>
 
-        <section id="login-form" class="form-wrap">
-          <form method="POST" action="{{ url_for('auth.login') }}">
-            <div class="form-row">
-              <div>
-                <label for="email">Email</label>
-                <input id="email" name="email" type="email" placeholder="test@mail.com" required>
-              </div>
+      <div class="cta-row">
+        <a class="btn btn-primary" href="#login-form">Get started — it's free!</a>
+        <a class="btn btn-ghost" href="{{ url_for('auth.register') }}">Create account</a>
+      </div>
 
-              <div>
-                <label for="password">Şifre</label>
-                <input id="password" name="password" type="password" placeholder="••••" required>
-              </div>
-
-              <div class="form-actions">
-                <button class="btn btn-primary" type="submit">Log in</button>
-                <a class="small-link" href="{{ url_for('main.forgot_password') }}">Şifremi unuttum</a>
-              </div>
+      <section id="login-form" class="form-wrap">
+        <form method="POST" action="{{ url_for('auth.login') }}">
+          <div class="form-row">
+            <div>
+              <label for="email">Email</label>
+              <input id="email" name="email" type="email" placeholder="test@mail.com" required>
             </div>
-          </form>
-        </section>
-      </div>
-    </main>
-  </div>
+
+            <div>
+              <label for="password">Şifre</label>
+              <input id="password" name="password" type="password" placeholder="••••" required>
+            </div>
+
+            <div class="form-actions">
+              <button class="btn btn-primary" type="submit">Log in</button>
+              <a class="small-link" href="{{ url_for('main.forgot_password') }}">Şifremi unuttum</a>
+            </div>
+          </div>
+        </form>
+      </section>
+    </div>
+  </main>
+</div>
 {% endblock %}
 
 {% block scripts %}
-  <script>
-    const backgrounds = [
-      "{{ url_for('static', filename='img/series1.jpg') }}",
-      "{{ url_for('static', filename='img/series2.jpg') }}",
-      "{{ url_for('static', filename='img/series3.jpg') }}",
-      "{{ url_for('static', filename='img/series4.jpg') }}",
-      "{{ url_for('static', filename='img/series5.jpg') }}",
-      "{{ url_for('static', filename='img/series6.jpg') }}"
-    ];
+<script>
+  const backgrounds = [
+    "{{ url_for('static', filename='img/series1.jpg') }}",
+    "{{ url_for('static', filename='img/series2.jpg') }}",
+    "{{ url_for('static', filename='img/series3.jpg') }}",
+    "{{ url_for('static', filename='img/series4.jpg') }}",
+    "{{ url_for('static', filename='img/series5.jpg') }}",
+    "{{ url_for('static', filename='img/series6.jpg') }}"
+  ];
 
-    const pick = backgrounds[Math.floor(Math.random() * backgrounds.length)];
-    document.documentElement.style.setProperty('--bg-image', `url("${pick}")`);
-  </script>
+  const pick = backgrounds[Math.floor(Math.random() * backgrounds.length)];
+  document.documentElement.style.setProperty('--bg-image', `url("${pick}")`);
+</script>
 {% endblock %}
