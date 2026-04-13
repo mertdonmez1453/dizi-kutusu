@@ -1,0 +1,70 @@
+============================= test session starts =============================
+platform win32 -- Python 3.13.3, pytest-9.0.2, pluggy-1.6.0
+rootdir: C:\Users\hp\Desktop\dizi-kutusu\dizi-kutusu
+collected 13 items
+
+app\tests\test_auth.py .FFF                                              [ 30%]
+tests\test_auth_routes.py ........                                       [ 92%]
+tests\test_health.py .                                                   [100%]
+
+================================== FAILURES ===================================
+________________________ test_login_with_empty_fields _________________________
+
+client = <FlaskClient <Flask 'app'>>
+
+    def test_login_with_empty_fields(client):
+        response = client.post("/login", data={
+            "email": "",
+            "password": ""
+        }, follow_redirects=True)
+    
+        assert response.status_code == 200
+>       assert b"E-posta" in response.data or b"sifre" in response.data or b"\xc5\x9fifre" in response.data
+E       assert (b'E-posta' in b'<!doctype html>\n<html lang="tr">\n<head>\n  <meta charset="utf-8" />\n  <meta name="viewport" content="width=device...];\n    document.documentElement.style.setProperty(\'--bg-image\', `url("${pick}")`);\n  </script>\n</body>\n</html>\n' or b'sifre' in b'<!doctype html>\n<html lang="tr">\n<head>\n  <meta charset="utf-8" />\n  <meta name="viewport" content="width=device...];\n    document.documentElement.style.setProperty(\'--bg-image\', `url("${pick}")`);\n  </script>\n</body>\n</html>\n' or b'\xc5\x9fifre' in b'<!doctype html>\n<html lang="tr">\n<head>\n  <meta charset="utf-8" />\n  <meta name="viewport" content="width=device...];\n    document.documentElement.style.setProperty(\'--bg-image\', `url("${pick}")`);\n  </script>\n</body>\n</html>\n')
+E        +  where b'<!doctype html>\n<html lang="tr">\n<head>\n  <meta charset="utf-8" />\n  <meta name="viewport" content="width=device...];\n    document.documentElement.style.setProperty(\'--bg-image\', `url("${pick}")`);\n  </script>\n</body>\n</html>\n' = <WrapperTestResponse 2455 bytes [200 OK]>.data
+E        +  and   b'<!doctype html>\n<html lang="tr">\n<head>\n  <meta charset="utf-8" />\n  <meta name="viewport" content="width=device...];\n    document.documentElement.style.setProperty(\'--bg-image\', `url("${pick}")`);\n  </script>\n</body>\n</html>\n' = <WrapperTestResponse 2455 bytes [200 OK]>.data
+E        +  and   b'<!doctype html>\n<html lang="tr">\n<head>\n  <meta charset="utf-8" />\n  <meta name="viewport" content="width=device...];\n    document.documentElement.style.setProperty(\'--bg-image\', `url("${pick}")`);\n  </script>\n</body>\n</html>\n' = <WrapperTestResponse 2455 bytes [200 OK]>.data
+
+app\tests\test_auth.py:15: AssertionError
+_________________________ test_login_with_wrong_email _________________________
+
+client = <FlaskClient <Flask 'app'>>
+
+    def test_login_with_wrong_email(client):
+        response = client.post("/login", data={
+            "email": "wrong@example.com",
+            "password": "123456"
+        }, follow_redirects=True)
+    
+        assert response.status_code == 200
+>       assert b"hatal" in response.data
+E       assert b'hatal' in b'<!doctype html>\n<html lang="tr">\n<head>\n  <meta charset="utf-8" />\n  <meta name="viewport" content="width=device...];\n    document.documentElement.style.setProperty(\'--bg-image\', `url("${pick}")`);\n  </script>\n</body>\n</html>\n'
+E        +  where b'<!doctype html>\n<html lang="tr">\n<head>\n  <meta charset="utf-8" />\n  <meta name="viewport" content="width=device...];\n    document.documentElement.style.setProperty(\'--bg-image\', `url("${pick}")`);\n  </script>\n</body>\n</html>\n' = <WrapperTestResponse 2455 bytes [200 OK]>.data
+
+app\tests\test_auth.py:24: AssertionError
+_____________________________ test_login_success ______________________________
+
+client = <FlaskClient <Flask 'app'>>, app = <Flask 'app'>
+
+    def test_login_success(client, app):
+        with app.app_context():
+            user = User(email="test@example.com")
+>           user.set_password("123456")
+            ^^^^^^^^^^^^^^^^^
+E           AttributeError: 'User' object has no attribute 'set_password'. Did you mean: 'check_password'?
+
+app\tests\test_auth.py:29: AttributeError
+============================== warnings summary ===============================
+tests/test_auth_routes.py::test_user_registration
+tests/test_auth_routes.py::test_user_registration_existing_email
+tests/test_auth_routes.py::test_user_login
+tests/test_auth_routes.py::test_user_login_incorrect_password
+  C:\Users\hp\Desktop\dizi-kutusu\dizi-kutusu\.venv\Lib\site-packages\sqlalchemy\sql\schema.py:3624: DeprecationWarning: datetime.datetime.utcnow() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.now(datetime.UTC).
+    return util.wrap_callable(lambda ctx: fn(), fn)  # type: ignore
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ===========================
+FAILED app/tests/test_auth.py::test_login_with_empty_fields - assert (b'E-pos...
+FAILED app/tests/test_auth.py::test_login_with_wrong_email - assert b'hatal' ...
+FAILED app/tests/test_auth.py::test_login_success - AttributeError: 'User' ob...
+================== 3 failed, 10 passed, 4 warnings in 1.25s ===================

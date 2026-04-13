@@ -39,6 +39,10 @@ _start_time = 0.0
 def pytest_sessionstart(session):
     global _start_time
     _start_time = time.time()
+    from tests.logger import init_test_run
+    from tests.scenario_logger import init_scenario_run
+    init_test_run()
+    init_scenario_run()
 
 def pytest_terminal_summary(terminalreporter, exitstatus, config):
     global _start_time

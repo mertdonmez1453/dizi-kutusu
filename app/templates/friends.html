@@ -3,188 +3,281 @@
 {% block title %}Arkadaşlar — Dizi Kutusu{% endblock %}
 
 {% block head_css %}
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
-  <link rel="stylesheet" href="{{ url_for('static', filename='css/friends.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/pages.css') }}">
 {% endblock %}
 
 {% block body %}
-  <div class="friends-page">
-    <div class="friends-header">
-      <a href="{{ url_for('main.index') }}" class="back-link">←</a>
-      <h2>Arkadaşlar</h2>
-    </div>
 
-    <div class="friends-search">
-      <input type="text" id="userSearch" placeholder="Kullanıcı ara..." />
-      <div class="search-results" id="searchResults"></div>
+  <!-- NAVBAR -->
+  <header id="site-header">
+    <div class="header-inner">
+      <a href="{{ url_for('main.index') }}" class="logo">
+        <span class="logo-icon">🎬</span>
+        <span class="logo-text">Dizi<span class="logo-accent">Kutusu</span></span>
+      </a>
+      <nav class="header-nav" id="headerNav">
+        <a href="{{ url_for('main.feed') }}" class="nav-link">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
+          Aktiviteler
+        </a>
+        <a href="{{ url_for('main.favorites') }}" class="nav-link">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+          Favoriler
+        </a>
+        <a href="{{ url_for('main.compare') }}" class="nav-link">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>
+          Karşılaştır
+        </a>
+        <a href="{{ url_for('main.friends') }}" class="nav-link active">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+          Takip
+        </a>
+        <a href="{{ url_for('main.profile') }}" class="nav-link nav-link--profile">
+          <span class="avatar-chip">{{ session["user"][0]|upper if session["user"] else "?" }}</span>
+          <span class="user-email">{{ session["user"] }}</span>
+        </a>
+        <a href="{{ url_for('main.settings') }}" class="nav-link nav-icon-link" title="Ayarlar">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+        </a>
+        <a href="{{ url_for('auth.logout') }}" class="btn-logout">Çıkış</a>
+      </nav>
+      <button class="hamburger" id="hamburger" aria-label="Menü">
+        <span></span><span></span><span></span>
+      </button>
     </div>
+  </header>
 
-    <div class="friends-tabs">
-      <button class="tab-btn active" data-tab="following">Takip Ettiklerim</button>
-      <button class="tab-btn" data-tab="followers">Takipçilerim</button>
+  <!-- PAGE HERO -->
+  <section class="page-hero">
+    <div class="page-hero-bg">
+      <div class="page-hero-orb page-hero-orb--1" style="background:radial-gradient(circle,rgba(15,217,193,0.4),transparent 70%)"></div>
+      <div class="page-hero-orb page-hero-orb--2" style="background:radial-gradient(circle,rgba(124,92,252,0.5),transparent 70%)"></div>
     </div>
+    <div class="page-hero-content">
+      <h1 class="page-hero-title">Takip</h1>
+      <p class="page-hero-sub">Kullanıcıları keşfet ve dizi dünyasını paylaş</p>
+    </div>
+  </section>
 
-    <div class="tab-content" id="tabContent">
-      <div class="friend-list" id="friendList">
-        <p class="no-friends">Yükleniyor...</p>
+  <!-- MAIN -->
+  <main class="page-wrap">
+
+    <!-- User Search -->
+    <div class="friends-search-wrap">
+      <div class="friends-search-box">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+          <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+        </svg>
+        <input type="text" id="userSearch" placeholder="Kullanıcı ara..." autocomplete="off" />
       </div>
+      <div class="search-results-dropdown" id="searchResults"></div>
     </div>
+
+    <!-- Tabs -->
+    <div class="tab-bar">
+      <button class="tab-pill active" data-tab="following" id="tabFollowing">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><line x1="19" y1="8" x2="19" y2="14"/><line x1="22" y1="11" x2="16" y2="11"/></svg>
+        Takip Ettiklerim
+      </button>
+      <button class="tab-pill" data-tab="followers" id="tabFollowers">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+        Takipçilerim
+      </button>
+    </div>
+
+    <div class="user-list" id="friendList">
+      <div class="loading-state"><div class="loading-spinner"></div><p>Yükleniyor…</p></div>
+    </div>
+
+  </main>
+
+  <div class="particles" aria-hidden="true">
+    <div class="particle"></div><div class="particle"></div>
+    <div class="particle"></div><div class="particle"></div>
+    <div class="particle"></div>
   </div>
+
 {% endblock %}
 
 {% block scripts %}
-  <script>
-    function escapeHtml(str) {
-      if (!str) return "";
-      const d = document.createElement("div");
-      d.textContent = str;
-      return d.innerHTML;
-    }
+<script>
+  function escapeHtml(str) {
+    if (!str) return "";
+    const d = document.createElement("div");
+    d.textContent = str;
+    return d.innerHTML;
+  }
 
-    let activeTab = "following";
-    let searchTimer = null;
+  /* Navbar scroll */
+  const header = document.getElementById("site-header");
+  window.addEventListener("scroll", () => {
+    header.classList.toggle("scrolled", window.scrollY > 60);
+  }, { passive: true });
+  document.getElementById("hamburger").addEventListener("click", () => {
+    document.getElementById("headerNav").classList.toggle("open");
+    document.getElementById("hamburger").classList.toggle("active");
+  });
 
-    /* ── Tab Switch ── */
-    document.querySelectorAll(".tab-btn").forEach(btn => {
-      btn.addEventListener("click", () => {
-        document.querySelectorAll(".tab-btn").forEach(b => b.classList.remove("active"));
-        btn.classList.add("active");
-        activeTab = btn.dataset.tab;
-        loadList();
+  let activeTab = "following";
+  let searchTimer = null;
+
+  /* Tab Switch */
+  document.querySelectorAll(".tab-pill").forEach(btn => {
+    btn.addEventListener("click", () => {
+      document.querySelectorAll(".tab-pill").forEach(b => b.classList.remove("active"));
+      btn.classList.add("active");
+      activeTab = btn.dataset.tab;
+      loadList();
+    });
+  });
+
+  /* Load following/followers */
+  function loadList() {
+    const list = document.getElementById("friendList");
+    list.innerHTML = '<div class="loading-state"><div class="loading-spinner"></div><p>Yükleniyor…</p></div>';
+
+    const url = activeTab === "following"
+      ? "/api/friendships/following"
+      : "/api/friendships/followers";
+
+    fetch(url)
+      .then(r => { if (!r.ok) throw new Error(); return r.json(); })
+      .then(data => {
+        const items = Array.isArray(data) ? data : (data.items || []);
+        if (!items.length) {
+          list.innerHTML = `
+            <div class="empty-state">
+              <div class="empty-state-icon-wrap">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" opacity="0.5"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+              </div>
+              <h3>${activeTab === "following" ? "Henüz kimseyi takip etmiyorsun" : "Henüz takipçin yok"}</h3>
+              <p>${activeTab === "following" ? "Yukarıdaki arama kutusundan kullanıcı bulabilirsin." : "Daha fazla dizi paylaş, takipçi kazan!"}</p>
+            </div>`;
+          return;
+        }
+        list.innerHTML = "";
+        items.forEach((u, i) => {
+          const card = createUserCard(u, activeTab === "following");
+          card.style.animationDelay = `${i * 40}ms`;
+          list.appendChild(card);
+        });
+      })
+      .catch(() => {
+        list.innerHTML = '<div class="no-results"><p>⚠️ Yüklenirken hata oluştu.</p></div>';
       });
+  }
+
+  function createUserCard(u, showUnfollow) {
+    const card = document.createElement("div");
+    card.className = "user-card";
+
+    const userId = u.id || u.user_id;
+    const username = u.username || u.email || "Kullanıcı";
+    const email = u.email || "";
+
+    card.innerHTML = `
+      <div class="user-card-left" onclick="window.location.href='/friends/${userId}'">
+        <div class="user-avatar-lg">${escapeHtml(username.charAt(0).toUpperCase())}</div>
+        <div class="user-info">
+          <strong class="user-name">${escapeHtml(username)}</strong>
+          ${email && email !== username ? `<span class="user-email-sm">${escapeHtml(email)}</span>` : ""}
+        </div>
+      </div>
+      <div class="user-card-actions">
+        <a href="/friends/${userId}" class="btn-view-profile">Profili Gör</a>
+        <button class="btn-follow ${showUnfollow ? "is-following" : ""}" data-uid="${userId}">
+          ${showUnfollow
+            ? `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg> Takipten Çık`
+            : `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg> Takip Et`}
+        </button>
+      </div>
+    `;
+
+    card.querySelector(".btn-follow").addEventListener("click", function(e) {
+      e.stopPropagation();
+      toggleFollow(this, userId);
     });
 
-    /* ── Load following/followers ── */
-    function loadList() {
-      const list = document.getElementById("friendList");
-      list.innerHTML = '<p class="no-friends">Yükleniyor...</p>';
+    return card;
+  }
 
-      const url = activeTab === "following"
-        ? "/api/friendships/following"
-        : "/api/friendships/followers";
+  function toggleFollow(btn, userId) {
+    const isFollowing = btn.classList.contains("is-following");
+    const method = isFollowing ? "DELETE" : "POST";
 
-      fetch(url)
+    btn.disabled = true;
+    fetch(`/api/friendships/${userId}`, { method })
+      .then(r => {
+        if (!r.ok) throw new Error();
+        btn.classList.toggle("is-following");
+        const following = btn.classList.contains("is-following");
+        btn.innerHTML = following
+          ? `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg> Takipten Çık`
+          : `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg> Takip Et`;
+        setTimeout(loadList, 300);
+      })
+      .catch(() => {})
+      .finally(() => { btn.disabled = false; });
+  }
+
+  /* User Search */
+  const searchInput = document.getElementById("userSearch");
+  const searchResults = document.getElementById("searchResults");
+
+  searchInput.addEventListener("input", () => {
+    clearTimeout(searchTimer);
+    const q = searchInput.value.trim();
+    if (!q) { searchResults.style.display = "none"; searchResults.innerHTML = ""; return; }
+    searchTimer = setTimeout(() => {
+      fetch(`/api/friendships/search?q=${encodeURIComponent(q)}`)
         .then(r => { if (!r.ok) throw new Error(); return r.json(); })
         .then(data => {
-          const items = Array.isArray(data) ? data : (data.items || []);
-          if (!items.length) {
-            list.innerHTML = `<p class="no-friends">${activeTab === "following" ? "Henüz kimseyi takip etmiyorsun." : "Henüz takipçin yok."}</p>`;
+          const users = Array.isArray(data) ? data : (data.items || []);
+          searchResults.innerHTML = "";
+          if (!users.length) {
+            searchResults.innerHTML = '<p class="search-empty">Kullanıcı bulunamadı.</p>';
+            searchResults.style.display = "block";
             return;
           }
-          list.innerHTML = "";
-          items.forEach(u => {
-            list.appendChild(createUserCard(u, activeTab === "following"));
+          users.forEach(u => {
+            const userId = u.id || u.user_id;
+            const username = u.username || u.email || "Kullanıcı";
+            const item = document.createElement("div");
+            item.className = "search-result-item";
+            item.innerHTML = `
+              <div class="search-result-left" onclick="window.location.href='/friends/${userId}'">
+                <div class="user-avatar-sm">${escapeHtml(username.charAt(0).toUpperCase())}</div>
+                <span>${escapeHtml(username)}</span>
+              </div>
+              <button class="btn-follow ${u.is_following ? "is-following" : ""}" data-uid="${userId}">
+                ${u.is_following ? "Takipten Çık" : "Takip Et"}
+              </button>
+            `;
+            item.querySelector(".btn-follow").addEventListener("click", function(e) {
+              e.stopPropagation();
+              toggleFollow(this, userId);
+            });
+            searchResults.appendChild(item);
           });
+          searchResults.style.display = "block";
         })
         .catch(() => {
-          list.innerHTML = '<p class="no-friends" style="color:#e94560;">Yüklenirken hata oluştu.</p>';
+          searchResults.innerHTML = '<p class="search-empty" style="color:var(--accent)">Arama hatası.</p>';
+          searchResults.style.display = "block";
         });
+    }, 350);
+  });
+
+  document.addEventListener("click", e => {
+    if (!searchInput.contains(e.target) && !searchResults.contains(e.target)) {
+      searchResults.style.display = "none";
     }
+  });
 
-    function createUserCard(u, showUnfollow) {
-      const card = document.createElement("div");
-      card.className = "user-card";
-
-      const userId = u.id || u.user_id;
-      const username = u.username || u.email || "Kullanıcı";
-      const email = u.email || "";
-
-      card.innerHTML = `
-        <div class="user-card-left" onclick="window.location.href='/friends/${userId}'">
-          <div class="user-avatar-sm">${escapeHtml(username.charAt(0).toUpperCase())}</div>
-          <div class="user-info">
-            <strong>${escapeHtml(username)}</strong>
-            ${email && email !== username ? `<span class="user-email-sm">${escapeHtml(email)}</span>` : ""}
-          </div>
-        </div>
-        <button class="btn-follow ${showUnfollow ? "is-following" : ""}"
-                data-uid="${userId}">
-          ${showUnfollow ? "Takipten Çık" : "Takip Et"}
-        </button>
-      `;
-
-      card.querySelector(".btn-follow").addEventListener("click", function(e) {
-        e.stopPropagation();
-        toggleFollow(this, userId);
-      });
-
-      return card;
-    }
-
-    function toggleFollow(btn, userId) {
-      const isFollowing = btn.classList.contains("is-following");
-      const method = isFollowing ? "DELETE" : "POST";
-
-      fetch(`/api/friendships/${userId}`, { method })
-        .then(r => {
-          if (!r.ok) throw new Error();
-          btn.classList.toggle("is-following");
-          btn.textContent = isFollowing ? "Takip Et" : "Takipten Çık";
-          loadList();
-        })
-        .catch(() => {});
-    }
-
-    /* ── User Search ── */
-    const searchInput = document.getElementById("userSearch");
-    const searchResults = document.getElementById("searchResults");
-
-    searchInput.addEventListener("input", () => {
-      clearTimeout(searchTimer);
-      const q = searchInput.value.trim();
-      if (!q) {
-        searchResults.style.display = "none";
-        searchResults.innerHTML = "";
-        return;
-      }
-      searchTimer = setTimeout(() => {
-        fetch(`/api/friendships/search?q=${encodeURIComponent(q)}`)
-          .then(r => { if (!r.ok) throw new Error(); return r.json(); })
-          .then(data => {
-            const users = Array.isArray(data) ? data : (data.items || []);
-            if (!users.length) {
-              searchResults.innerHTML = '<p class="search-empty">Kullanıcı bulunamadı.</p>';
-              searchResults.style.display = "block";
-              return;
-            }
-            searchResults.innerHTML = "";
-            users.forEach(u => {
-              const userId = u.id || u.user_id;
-              const username = u.username || u.email || "Kullanıcı";
-
-              const item = document.createElement("div");
-              item.className = "search-result-item";
-              item.innerHTML = `
-                <div class="user-card-left" onclick="window.location.href='/friends/${userId}'">
-                  <div class="user-avatar-sm">${escapeHtml(username.charAt(0).toUpperCase())}</div>
-                  <span>${escapeHtml(username)}</span>
-                </div>
-                <button class="btn-follow ${u.is_following ? "is-following" : ""}"
-                        data-uid="${userId}">
-                  ${u.is_following ? "Takipten Çık" : "Takip Et"}
-                </button>
-              `;
-              item.querySelector(".btn-follow").addEventListener("click", function(e) {
-                e.stopPropagation();
-                toggleFollow(this, userId);
-              });
-              searchResults.appendChild(item);
-            });
-            searchResults.style.display = "block";
-          })
-          .catch(() => {
-            searchResults.innerHTML = '<p class="search-empty" style="color:#e94560;">Arama hatası.</p>';
-            searchResults.style.display = "block";
-          });
-      }, 350);
-    });
-
-    document.addEventListener("click", e => {
-      if (!searchInput.contains(e.target) && !searchResults.contains(e.target)) {
-        searchResults.style.display = "none";
-      }
-    });
-
-    loadList();
-  </script>
+  loadList();
+</script>
 {% endblock %}

@@ -3,16 +3,7 @@ import time
 from app.models import User
 from app.db import db
 
-def log_step(test_name, input_desc, expected, actual, is_correct, start_time):
-    duration = (time.time() - start_time) * 1000
-    status = "[PASS]" if is_correct else "[FAIL]"
-    
-    print(f"\n--- {test_name} ---")
-    print(f" > Request  : {input_desc}")
-    print(f" > Expected : {expected}")
-    print(f" > Actual   : {actual}")
-    print(f" > Result   : {status} -- Took {duration:.2f} ms")
-    print("-" * 55)
+from tests.logger import log_step
 
 def test_register_page(client):
     start = time.time()
@@ -51,6 +42,7 @@ def test_login_page(client):
 def test_register_success(client, app):
     start = time.time()
     response = client.post("/register", data={
+        "username": "testuser",
         "email": "test@example.com",
         "password": "password123"
     }, follow_redirects=True)
@@ -78,6 +70,7 @@ def test_register_success(client, app):
 def test_register_invalid_email(client, app):
     start = time.time()
     response = client.post("/register", data={
+        "username": "invaliduser",
         "email": "invalid-email",
         "password": "password123"
     }, follow_redirects=True)
@@ -101,12 +94,13 @@ def test_register_invalid_email(client, app):
 
 def test_register_existing_email(client, app):
     with app.app_context():
-        user = User(email="test2@example.com", password_hash=User.hash_password("password123"))
+        user = User(email="test2@example.com", username="testuser2", password_hash=User.hash_password("password123"))
         db.session.add(user)
         db.session.commit()
 
     start = time.time()
     response = client.post("/register", data={
+        "username": "dupeuser",
         "email": "test2@example.com",
         "password": "newpassword456"
     }, follow_redirects=True)
@@ -132,7 +126,7 @@ def test_register_existing_email(client, app):
 
 def test_login_success(client, app):
     with app.app_context():
-        user = User(email="login@example.com", password_hash=User.hash_password("password123"))
+        user = User(email="login@example.com", username="loginuser", password_hash=User.hash_password("password123"))
         db.session.add(user)
         db.session.commit()
 
@@ -161,7 +155,7 @@ def test_login_success(client, app):
 
 def test_login_invalid_password(client, app):
     with app.app_context():
-        user = User(email="login2@example.com", password_hash=User.hash_password("password123"))
+        user = User(email="login2@example.com", username="loginuser2", password_hash=User.hash_password("password123"))
         db.session.add(user)
         db.session.commit()
 

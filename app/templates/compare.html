@@ -3,235 +3,296 @@
 {% block title %}Dizi Karşılaştır — Dizi Kutusu{% endblock %}
 
 {% block head_css %}
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
-  <link rel="stylesheet" href="{{ url_for('static', filename='css/compare.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/pages.css') }}">
 {% endblock %}
 
 {% block body %}
-  <div class="compare-page">
-    <div class="compare-header">
-      <a href="{{ url_for('main.index') }}" class="back-link">←</a>
-      <h2>Dizi Karşılaştır</h2>
+
+  <!-- NAVBAR -->
+  <header id="site-header">
+    <div class="header-inner">
+      <a href="{{ url_for('main.index') }}" class="logo">
+        <span class="logo-icon">🎬</span>
+        <span class="logo-text">Dizi<span class="logo-accent">Kutusu</span></span>
+      </a>
+      <nav class="header-nav" id="headerNav">
+        <a href="{{ url_for('main.feed') }}" class="nav-link">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
+          Aktiviteler
+        </a>
+        <a href="{{ url_for('main.favorites') }}" class="nav-link">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+          Favoriler
+        </a>
+        <a href="{{ url_for('main.compare') }}" class="nav-link active">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>
+          Karşılaştır
+        </a>
+        <a href="{{ url_for('main.friends') }}" class="nav-link">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+          Takip
+        </a>
+        <a href="{{ url_for('main.profile') }}" class="nav-link nav-link--profile">
+          <span class="avatar-chip">{{ session["user"][0]|upper if session["user"] else "?" }}</span>
+          <span class="user-email">{{ session["user"] }}</span>
+        </a>
+        <a href="{{ url_for('main.settings') }}" class="nav-link nav-icon-link" title="Ayarlar">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+        </a>
+        <a href="{{ url_for('auth.logout') }}" class="btn-logout">Çıkış</a>
+      </nav>
+      <button class="hamburger" id="hamburger" aria-label="Menü">
+        <span></span><span></span><span></span>
+      </button>
+    </div>
+  </header>
+
+  <!-- PAGE HERO -->
+  <section class="page-hero">
+    <div class="page-hero-bg">
+      <div class="page-hero-orb page-hero-orb--1" style="background:radial-gradient(circle,rgba(245,197,24,0.35),transparent 70%)"></div>
+      <div class="page-hero-orb page-hero-orb--2" style="background:radial-gradient(circle,rgba(124,92,252,0.5),transparent 70%)"></div>
+    </div>
+    <div class="page-hero-content">
+      <h1 class="page-hero-title">Dizi Karşılaştır</h1>
+      <p class="page-hero-sub">2–5 dizi seç ve yan yana karşılaştır</p>
+    </div>
+  </section>
+
+  <!-- MAIN -->
+  <main class="page-wrap">
+
+    <!-- Picker -->
+    <div class="compare-picker-card">
+      <div class="compare-search-wrap">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+          <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+        </svg>
+        <input type="text" id="pickerInput" placeholder="Dizi ara ve ekle (2–5 dizi)…" autocomplete="off" />
+        <div class="picker-results-dropdown" id="pickerResults"></div>
+      </div>
+
+      <div class="picked-chips" id="pickedList">
+        <p class="picked-hint" id="pickedHint">Karşılaştırmak için en az 2 dizi seç</p>
+      </div>
+
+      <button class="btn-compare" id="btnCompare" disabled>
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>
+        Karşılaştır
+      </button>
     </div>
 
-    <!-- Dizi ekleme alanı -->
-    <div class="picker-section">
-      <div class="picker-search">
-        <input type="text" id="pickerInput" placeholder="Dizi ara ve ekle (2-5 adet)..." />
-        <div class="picker-results" id="pickerResults"></div>
-      </div>
-      <div class="picked-list" id="pickedList">
-        <p class="picked-hint" id="pickedHint">Karşılaştırmak için en az 2 dizi seç.</p>
-      </div>
-      <button class="btn-compare" id="btnCompare" disabled>Karşılaştır</button>
-    </div>
-
-    <!-- Sonuç tablosu -->
-    <div class="compare-result" id="compareResult" style="display:none;">
-      <div class="compare-table-wrap">
+    <!-- Result -->
+    <div class="compare-result-wrap" id="compareResult" style="display:none">
+      <div class="compare-table-scroll">
         <table class="compare-table" id="compareTable"></table>
       </div>
     </div>
+
+  </main>
+
+  <div class="particles" aria-hidden="true">
+    <div class="particle"></div><div class="particle"></div>
+    <div class="particle"></div><div class="particle"></div>
+    <div class="particle"></div>
   </div>
+
 {% endblock %}
 
 {% block scripts %}
-  <script>
-    function esc(str) {
-      if (!str && str !== 0) return "";
-      const d = document.createElement("div");
-      d.textContent = String(str);
-      return d.innerHTML;
-    }
+<script>
+  function esc(str) {
+    if (!str && str !== 0) return "";
+    const d = document.createElement("div");
+    d.textContent = String(str);
+    return d.innerHTML;
+  }
 
-    const MAX_PICK = 5;
-    let picked = [];
-    let searchTimer = null;
+  /* Navbar scroll */
+  const header = document.getElementById("site-header");
+  window.addEventListener("scroll", () => {
+    header.classList.toggle("scrolled", window.scrollY > 60);
+  }, { passive: true });
+  document.getElementById("hamburger").addEventListener("click", () => {
+    document.getElementById("headerNav").classList.toggle("open");
+    document.getElementById("hamburger").classList.toggle("active");
+  });
 
-    const pickerInput = document.getElementById("pickerInput");
-    const pickerResults = document.getElementById("pickerResults");
-    const pickedList = document.getElementById("pickedList");
-    const pickedHint = document.getElementById("pickedHint");
-    const btnCompare = document.getElementById("btnCompare");
+  const MAX_PICK = 5;
+  let picked = [];
+  let searchTimer = null;
 
-    /* ── Dizi arama ── */
-    pickerInput.addEventListener("input", () => {
-      clearTimeout(searchTimer);
-      const q = pickerInput.value.trim();
-      if (!q) { pickerResults.style.display = "none"; return; }
+  const pickerInput   = document.getElementById("pickerInput");
+  const pickerResults = document.getElementById("pickerResults");
+  const pickedList    = document.getElementById("pickedList");
+  const pickedHint    = document.getElementById("pickedHint");
+  const btnCompare    = document.getElementById("btnCompare");
 
-      searchTimer = setTimeout(() => {
-        fetch(`/api/series/search?q=${encodeURIComponent(q)}&per_page=8`)
-          .then(r => { if (!r.ok) throw new Error(); return r.json(); })
-          .then(data => {
-            const items = Array.isArray(data) ? data : (data.items || []);
-            pickerResults.innerHTML = "";
-            if (!items.length) {
-              pickerResults.innerHTML = '<div class="picker-empty">Sonuç bulunamadı.</div>';
-              pickerResults.style.display = "block";
-              return;
-            }
-            items.forEach(s => {
-              const already = picked.some(p => p.id === s.id);
-              const item = document.createElement("div");
-              item.className = "picker-item" + (already ? " disabled" : "");
-              item.innerHTML = `
-                <span>${esc(s.title)}</span>
-                <span class="picker-item-meta">${esc(String(s.release_year || ""))} · ${esc(s.genre || "")}</span>
-              `;
-              if (!already && picked.length < MAX_PICK) {
-                item.addEventListener("click", () => addPick(s));
-              }
-              pickerResults.appendChild(item);
-            });
-            pickerResults.style.display = "block";
-          })
-          .catch(() => {});
-      }, 300);
-    });
-
-    document.addEventListener("click", e => {
-      if (!pickerInput.contains(e.target) && !pickerResults.contains(e.target)) {
-        pickerResults.style.display = "none";
-      }
-    });
-
-    /* ── Seçim yönetimi ── */
-    function addPick(s) {
-      if (picked.length >= MAX_PICK || picked.some(p => p.id === s.id)) return;
-      picked.push({ id: s.id, title: s.title, year: s.release_year, genre: s.genre, image_url: s.image_url });
-      pickerInput.value = "";
-      pickerResults.style.display = "none";
-      renderPicked();
-    }
-
-    function removePick(id) {
-      picked = picked.filter(p => p.id !== id);
-      renderPicked();
-    }
-
-    function renderPicked() {
-      pickedHint.style.display = picked.length ? "none" : "block";
-      btnCompare.disabled = picked.length < 2;
-
-      const tags = pickedList.querySelectorAll(".picked-tag");
-      tags.forEach(t => t.remove());
-
-      picked.forEach(p => {
-        const tag = document.createElement("div");
-        tag.className = "picked-tag";
-        tag.innerHTML = `
-          <span>${esc(p.title)}</span>
-          <button class="picked-remove" title="Kaldır">&times;</button>
-        `;
-        tag.querySelector(".picked-remove").addEventListener("click", () => removePick(p.id));
-        pickedList.insertBefore(tag, pickedHint);
-      });
-
-      if (picked.length >= MAX_PICK) {
-        pickerInput.placeholder = "Maksimum 5 dizi seçildi";
-        pickerInput.disabled = true;
-      } else {
-        pickerInput.placeholder = `Dizi ara ve ekle (${picked.length}/5)...`;
-        pickerInput.disabled = false;
-      }
-    }
-
-    /* ── Karşılaştır ── */
-    btnCompare.addEventListener("click", () => {
-      if (picked.length < 2) return;
-      const ids = picked.map(p => p.id).join(",");
-      btnCompare.disabled = true;
-      btnCompare.textContent = "Yükleniyor...";
-
-      fetch(`/api/series/compare?ids=${ids}`)
+  pickerInput.addEventListener("input", () => {
+    clearTimeout(searchTimer);
+    const q = pickerInput.value.trim();
+    if (!q) { pickerResults.style.display = "none"; return; }
+    searchTimer = setTimeout(() => {
+      fetch(`/api/series/search?q=${encodeURIComponent(q)}&per_page=8`)
         .then(r => { if (!r.ok) throw new Error(); return r.json(); })
         .then(data => {
-          const items = Array.isArray(data) ? data : (data.items || data.series || []);
-          renderCompareTable(items);
-          document.getElementById("compareResult").style.display = "block";
-          document.getElementById("compareResult").scrollIntoView({ behavior: "smooth" });
+          const items = Array.isArray(data) ? data : (data.items || []);
+          pickerResults.innerHTML = "";
+          if (!items.length) {
+            pickerResults.innerHTML = '<div class="picker-empty">Sonuç bulunamadı.</div>';
+            pickerResults.style.display = "block"; return;
+          }
+          items.forEach(s => {
+            const already = picked.some(p => p.id === s.id);
+            const item = document.createElement("div");
+            item.className = "picker-item" + (already ? " disabled" : "");
+            item.innerHTML = `
+              <span class="picker-title">${esc(s.title)}</span>
+              <span class="picker-meta">${esc(String(s.release_year || ""))} ${s.genre ? `· ${esc(s.genre)}` : ""}</span>
+            `;
+            if (!already && picked.length < MAX_PICK) {
+              item.addEventListener("click", () => addPick(s));
+            }
+            pickerResults.appendChild(item);
+          });
+          pickerResults.style.display = "block";
         })
-        .catch(() => {
-          document.getElementById("compareResult").style.display = "block";
-          document.getElementById("compareTable").innerHTML =
-            '<tr><td class="compare-error">Karşılaştırma verileri yüklenemedi.</td></tr>';
-        })
-        .finally(() => {
-          btnCompare.disabled = false;
-          btnCompare.textContent = "Karşılaştır";
-        });
+        .catch(() => {});
+    }, 300);
+  });
+
+  document.addEventListener("click", e => {
+    if (!pickerInput.contains(e.target) && !pickerResults.contains(e.target)) {
+      pickerResults.style.display = "none";
+    }
+  });
+
+  function addPick(s) {
+    if (picked.length >= MAX_PICK || picked.some(p => p.id === s.id)) return;
+    picked.push({ id: s.id, title: s.title, year: s.release_year, genre: s.genre, image_url: s.image_url });
+    pickerInput.value = "";
+    pickerResults.style.display = "none";
+    renderPicked();
+  }
+
+  function removePick(id) {
+    picked = picked.filter(p => p.id !== id);
+    renderPicked();
+  }
+
+  function renderPicked() {
+    pickedHint.style.display = picked.length ? "none" : "block";
+    btnCompare.disabled = picked.length < 2;
+    pickedList.querySelectorAll(".picked-chip").forEach(t => t.remove());
+    picked.forEach(p => {
+      const chip = document.createElement("div");
+      chip.className = "picked-chip";
+      chip.innerHTML = `
+        <span>${esc(p.title)}</span>
+        <button class="chip-remove" title="Kaldır">
+          <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
+      `;
+      chip.querySelector(".chip-remove").addEventListener("click", () => removePick(p.id));
+      pickedList.insertBefore(chip, pickedHint);
     });
 
-    /* ── Tablo render ── */
-    function renderCompareTable(items) {
-      const table = document.getElementById("compareTable");
-      table.innerHTML = "";
-
-      const rows = [
-        { label: "",           fn: s => s.image_url
-            ? `<img src="${esc(s.image_url)}" class="cmp-poster" alt="${esc(s.title)}" />`
-            : `<div class="cmp-no-img">Görsel yok</div>` },
-        { label: "Dizi",       fn: s => `<a href="/series/${s.id}" class="cmp-link">${esc(s.title)}</a>` },
-        { label: "Yıl",        fn: s => esc(s.release_year ?? "—") },
-        { label: "Tür",        fn: s => esc(s.genre ?? "—") },
-        { label: "Durum",      fn: s => esc(s.status ?? "—") },
-        { label: "Sezon",      fn: s => esc(s.number_of_seasons ?? "—") },
-        { label: "Bölüm",      fn: s => esc(s.number_of_episodes ?? "—") },
-        { label: "Puan",       fn: s => s.rating != null ? `<span class="cmp-rating">⭐ ${Number(s.rating).toFixed(1)}</span>` : "—" },
-        { label: "Ort. Puan",  fn: s => s.average_rating != null ? Number(s.average_rating).toFixed(1) : "—" },
-        { label: "İzleyici",   fn: s => esc(s.watcher_count ?? s.total_watchers ?? "—") },
-        { label: "Favori",     fn: s => esc(s.favorite_count ?? "—") },
-        { label: "Yorum",      fn: s => esc(s.review_count ?? s.comment_count ?? "—") },
-      ];
-
-      rows.forEach(row => {
-        const tr = document.createElement("tr");
-        if (row.label) {
-          const th = document.createElement("th");
-          th.textContent = row.label;
-          tr.appendChild(th);
-        } else {
-          tr.appendChild(document.createElement("th"));
-        }
-        items.forEach(s => {
-          const td = document.createElement("td");
-          td.innerHTML = row.fn(s);
-          tr.appendChild(td);
-        });
-        table.appendChild(tr);
-      });
-
-      highlightBest(table, items);
+    if (picked.length >= MAX_PICK) {
+      pickerInput.placeholder = "Maksimum 5 dizi seçildi";
+      pickerInput.disabled = true;
+    } else {
+      pickerInput.placeholder = `Dizi ara ve ekle (${picked.length}/5)…`;
+      pickerInput.disabled = false;
     }
+  }
 
-    function highlightBest(table, items) {
-      const numericRows = {
-        "Puan": s => s.rating,
-        "Ort. Puan": s => s.average_rating,
-        "İzleyici": s => s.watcher_count ?? s.total_watchers,
-        "Favori": s => s.favorite_count,
-        "Yorum": s => s.review_count ?? s.comment_count
-      };
+  btnCompare.addEventListener("click", () => {
+    if (picked.length < 2) return;
+    const ids = picked.map(p => p.id).join(",");
+    btnCompare.disabled = true;
+    btnCompare.innerHTML = '<div class="loading-spinner" style="width:16px;height:16px;border-width:2px"></div> Yükleniyor…';
 
-      table.querySelectorAll("tr").forEach(tr => {
-        const th = tr.querySelector("th");
-        if (!th || !numericRows[th.textContent]) return;
-
-        const getter = numericRows[th.textContent];
-        const tds = Array.from(tr.querySelectorAll("td"));
-        let maxVal = -Infinity;
-        let maxIdx = -1;
-
-        items.forEach((s, i) => {
-          const v = Number(getter(s));
-          if (!isNaN(v) && v > maxVal) { maxVal = v; maxIdx = i; }
-        });
-
-        if (maxIdx >= 0 && maxVal > 0) {
-          tds[maxIdx].classList.add("cmp-best");
-        }
+    fetch(`/api/series/compare?ids=${ids}`)
+      .then(r => { if (!r.ok) throw new Error(); return r.json(); })
+      .then(data => {
+        const items = Array.isArray(data) ? data : (data.items || data.series || []);
+        renderCompareTable(items);
+        document.getElementById("compareResult").style.display = "block";
+        document.getElementById("compareResult").scrollIntoView({ behavior: "smooth" });
+      })
+      .catch(() => {
+        document.getElementById("compareResult").style.display = "block";
+        document.getElementById("compareTable").innerHTML =
+          '<tr><td class="compare-error" colspan="10">⚠️ Karşılaştırma verileri yüklenemedi.</td></tr>';
+      })
+      .finally(() => {
+        btnCompare.disabled = false;
+        btnCompare.innerHTML = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg> Karşılaştır`;
       });
-    }
-  </script>
+  });
+
+  function renderCompareTable(items) {
+    const table = document.getElementById("compareTable");
+    table.innerHTML = "";
+
+    const rows = [
+      { label: "",          fn: s => s.image_url
+          ? `<img src="${esc(s.image_url)}" class="cmp-poster" alt="${esc(s.title)}" />`
+          : `<div class="cmp-no-img"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="2" width="20" height="20" rx="3"/><path d="m2 12 5-5 4 4 3-3 5 5"/></svg></div>` },
+      { label: "Dizi",      fn: s => `<a href="/series/${s.id}" class="cmp-link">${esc(s.title)}</a>` },
+      { label: "Yıl",       fn: s => esc(s.release_year ?? "—") },
+      { label: "Tür",       fn: s => esc(s.genre ?? "—") },
+      { label: "Durum",     fn: s => esc(s.status ?? "—") },
+      { label: "Sezon",     fn: s => esc(s.number_of_seasons ?? "—") },
+      { label: "Bölüm",     fn: s => esc(s.number_of_episodes ?? "—") },
+      { label: "Puan",      fn: s => s.rating != null ? `<span class="cmp-val-bold">⭐ ${Number(s.rating).toFixed(1)}</span>` : "—" },
+      { label: "Ort. Puan", fn: s => s.average_rating != null ? Number(s.average_rating).toFixed(1) : "—" },
+      { label: "İzleyici",  fn: s => esc(s.watcher_count ?? s.total_watchers ?? "—") },
+      { label: "Favori",    fn: s => esc(s.favorite_count ?? "—") },
+      { label: "Yorum",     fn: s => esc(s.review_count ?? s.comment_count ?? "—") },
+    ];
+
+    rows.forEach(row => {
+      const tr = document.createElement("tr");
+      const th = document.createElement("th");
+      th.textContent = row.label;
+      tr.appendChild(th);
+      items.forEach(s => {
+        const td = document.createElement("td");
+        td.innerHTML = row.fn(s);
+        tr.appendChild(td);
+      });
+      table.appendChild(tr);
+    });
+
+    highlightBest(table, items);
+  }
+
+  function highlightBest(table, items) {
+    const numericRows = {
+      "Puan":      s => s.rating,
+      "Ort. Puan": s => s.average_rating,
+      "İzleyici":  s => s.watcher_count ?? s.total_watchers,
+      "Favori":    s => s.favorite_count,
+      "Yorum":     s => s.review_count ?? s.comment_count
+    };
+
+    table.querySelectorAll("tr").forEach(tr => {
+      const th = tr.querySelector("th");
+      if (!th || !numericRows[th.textContent]) return;
+      const getter = numericRows[th.textContent];
+      const tds = Array.from(tr.querySelectorAll("td"));
+      let maxVal = -Infinity; let maxIdx = -1;
+      items.forEach((s, i) => {
+        const v = Number(getter(s));
+        if (!isNaN(v) && v > maxVal) { maxVal = v; maxIdx = i; }
+      });
+      if (maxIdx >= 0 && maxVal > 0) { tds[maxIdx].classList.add("cmp-best"); }
+    });
+  }
+</script>
 {% endblock %}

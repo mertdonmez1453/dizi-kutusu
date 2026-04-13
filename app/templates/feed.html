@@ -3,96 +3,184 @@
 {% block title %}Arkadaş Aktiviteleri — Dizi Kutusu{% endblock %}
 
 {% block head_css %}
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
-  <link rel="stylesheet" href="{{ url_for('static', filename='css/feed.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/pages.css') }}">
 {% endblock %}
 
 {% block body %}
-  <header>
-    <h1><a href="{{ url_for('main.index') }}" class="back-link">← Dizi Kutusu</a></h1>
-    <nav class="header-nav">
-      <span class="user-email">{{ session["user"] }}</span>
-      <a href="{{ url_for('auth.logout') }}" class="logout-link">Çıkış</a>
-    </nav>
+
+  <!-- NAVBAR -->
+  <header id="site-header">
+    <div class="header-inner">
+      <a href="{{ url_for('main.index') }}" class="logo">
+        <span class="logo-icon">🎬</span>
+        <span class="logo-text">Dizi<span class="logo-accent">Kutusu</span></span>
+      </a>
+      <nav class="header-nav" id="headerNav">
+        <a href="{{ url_for('main.feed') }}" class="nav-link active">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
+          Aktiviteler
+        </a>
+        <a href="{{ url_for('main.favorites') }}" class="nav-link">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+          Favoriler
+        </a>
+        <a href="{{ url_for('main.compare') }}" class="nav-link">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>
+          Karşılaştır
+        </a>
+        <a href="{{ url_for('main.friends') }}" class="nav-link">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+          Takip
+        </a>
+        <a href="{{ url_for('main.profile') }}" class="nav-link nav-link--profile">
+          <span class="avatar-chip">{{ session["user"][0]|upper if session["user"] else "?" }}</span>
+          <span class="user-email">{{ session["user"] }}</span>
+        </a>
+        <a href="{{ url_for('main.settings') }}" class="nav-link nav-icon-link" title="Ayarlar">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+        </a>
+        <a href="{{ url_for('auth.logout') }}" class="btn-logout">Çıkış</a>
+      </nav>
+      <button class="hamburger" id="hamburger" aria-label="Menü">
+        <span></span><span></span><span></span>
+      </button>
+    </div>
   </header>
 
-  <div class="feed-page">
-    <h2>Arkadaş Aktiviteleri</h2>
-    <div id="feedLoading" class="feed-loading">Yükleniyor...</div>
+  <!-- PAGE HERO -->
+  <section class="page-hero">
+    <div class="page-hero-bg">
+      <div class="page-hero-orb page-hero-orb--1" style="background:radial-gradient(circle,rgba(124,92,252,0.5),transparent 70%)"></div>
+      <div class="page-hero-orb page-hero-orb--2" style="background:radial-gradient(circle,rgba(15,217,193,0.4),transparent 70%)"></div>
+    </div>
+    <div class="page-hero-content">
+      <h1 class="page-hero-title">Arkadaş Aktiviteleri</h1>
+      <p class="page-hero-sub">Takip ettiğin kişilerin son hareketleri</p>
+    </div>
+  </section>
+
+  <!-- MAIN -->
+  <main class="page-wrap">
+    <div id="feedLoading" class="loading-state">
+      <div class="loading-spinner"></div>
+      <p>Aktiviteler yükleniyor…</p>
+    </div>
     <div class="feed-list" id="feedList"></div>
+  </main>
+
+  <div class="particles" aria-hidden="true">
+    <div class="particle"></div><div class="particle"></div>
+    <div class="particle"></div><div class="particle"></div>
+    <div class="particle"></div>
   </div>
+
 {% endblock %}
 
 {% block scripts %}
-  <script>
-    function esc(str) {
-      if (!str && str !== 0) return "";
-      const d = document.createElement("div");
-      d.textContent = String(str);
-      return d.innerHTML;
-    }
+<script>
+  function esc(str) {
+    if (!str && str !== 0) return "";
+    const d = document.createElement("div");
+    d.textContent = String(str);
+    return d.innerHTML;
+  }
 
-    const ACTION_MAP = {
-      rated: "puan verdi",
-      reviewed: "yorum yaptı",
-      commented: "yorum yaptı",
-      added_to_watchlist: "listeye ekledi",
-      watchlist_add: "listeye ekledi",
-      favorited: "favorilere ekledi",
-      favorite_add: "favorilere ekledi",
-      status_update: "durumunu güncelledi"
-    };
+  /* Navbar scroll */
+  const header = document.getElementById("site-header");
+  window.addEventListener("scroll", () => {
+    header.classList.toggle("scrolled", window.scrollY > 60);
+  }, { passive: true });
 
-    fetch("/api/friendships/feed")
-      .then(r => { if (!r.ok) throw new Error(); return r.json(); })
-      .then(data => {
-        document.getElementById("feedLoading").style.display = "none";
-        const items = Array.isArray(data) ? data : (data.items || []);
-        const list = document.getElementById("feedList");
+  document.getElementById("hamburger").addEventListener("click", () => {
+    document.getElementById("headerNav").classList.toggle("open");
+    document.getElementById("hamburger").classList.toggle("active");
+  });
 
-        if (!items.length) {
-          list.innerHTML = '<p class="feed-empty">Henüz arkadaş aktivitesi yok. Birilerini takip etmeyi dene!</p>';
-          return;
-        }
+  const ACTION_MAP = {
+    rated: "puan verdi",
+    reviewed: "yorum yaptı",
+    commented: "yorum yaptı",
+    added_to_watchlist: "listeye ekledi",
+    watchlist_add: "listeye ekledi",
+    watchlist: "listeye ekledi",
+    favorited: "favorilere ekledi",
+    favorite_add: "favorilere ekledi",
+    status_update: "durumunu güncelledi"
+  };
 
-        items.forEach(a => {
-          const card = document.createElement("div");
-          card.className = "feed-card";
+  fetch("/api/friendships/feed")
+    .then(r => { if (!r.ok) throw new Error(); return r.json(); })
+    .then(data => {
+      document.getElementById("feedLoading").style.display = "none";
+      const items = Array.isArray(data) ? data : (data.items || []);
+      const list = document.getElementById("feedList");
 
-          const username = a.username || a.email || "Kullanıcı";
-          const action = ACTION_MAP[a.action || a.type] || a.action || a.type || "etkileşimde bulundu";
-          const seriesTitle = a.series_title || a.title || "";
-          const seriesId = a.series_id;
-          const dateStr = a.created_at ? new Date(a.created_at).toLocaleDateString("tr-TR") : "";
-
-          card.innerHTML = `
-            <div class="feed-card-left" ${seriesId ? `onclick="window.location.href='/series/${seriesId}'"` : ""}>
-              ${a.image_url || a.series_image
-                ? `<img class="feed-poster" src="${esc(a.image_url || a.series_image)}" alt="${esc(seriesTitle)}" />`
-                : `<div class="feed-no-poster">🎬</div>`}
+      if (!items.length) {
+        list.innerHTML = `
+          <div class="empty-state">
+            <div class="empty-state-icon-wrap">
+              <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" opacity="0.4"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
             </div>
-            <div class="feed-card-body">
-              <p class="feed-text">
-                <strong class="feed-user" onclick="window.location.href='/friends/${a.user_id || ""}'">
-                  ${esc(username)}
-                </strong>
-                <span class="feed-action">${esc(action)}</span>
-              </p>
-              <p class="feed-series" ${seriesId ? `onclick="window.location.href='/series/${seriesId}'"` : ""}>
-                ${esc(seriesTitle)}
-              </p>
-              ${a.rating ? `<span class="feed-rating">⭐ ${a.rating}/10</span>` : ""}
-              ${a.comment || a.text ? `<p class="feed-comment">${esc(a.comment || a.text)}</p>` : ""}
-              <span class="feed-date">${esc(dateStr)}</span>
+            <h3>Henüz aktivite yok</h3>
+            <p>Birilerini takip ederek onların dizi aktivitelerini buradan görebilirsin.</p>
+            <a href="/friends" class="btn-empty">Kullanıcı Ara</a>
+          </div>`;
+        return;
+      }
+
+      items.forEach((a, i) => {
+        const card = document.createElement("div");
+        card.className = "feed-card";
+        card.style.animationDelay = `${i * 40}ms`;
+
+        const username = a.username || a.email || "Kullanıcı";
+        const actionKey = a.action || a.type;
+        const action = ACTION_MAP[actionKey] || actionKey || "etkileşimde bulundu";
+        const seriesTitle = a.series_title || a.title || "";
+        const seriesId = a.series_id;
+        const dateStr = a.created_at ? new Date(a.created_at).toLocaleDateString("tr-TR", {
+          day: "numeric", month: "short", year: "numeric"
+        }) : "";
+
+        card.innerHTML = `
+          <div class="feed-poster-wrap" ${seriesId ? `onclick="window.location.href='/series/${seriesId}'"` : ""} style="${seriesId ? 'cursor:pointer' : ''}">
+            ${a.image_url || a.series_image
+              ? `<img class="feed-poster" src="${esc(a.image_url || a.series_image)}" alt="${esc(seriesTitle)}" />`
+              : `<div class="feed-no-poster"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="2" width="20" height="20" rx="3"/><path d="m2 12 5-5 4 4 3-3 5 5"/></svg></div>`}
+          </div>
+          <div class="feed-body">
+            <div class="feed-meta-top">
+              <div class="feed-avatar" onclick="window.location.href='/friends/${a.user_id || ''}'">
+                ${esc(username.charAt(0).toUpperCase())}
+              </div>
+              <div class="feed-text-group">
+                <p class="feed-text">
+                  <span class="feed-username" onclick="window.location.href='/friends/${a.user_id || ''}'">
+                    ${esc(username)}
+                  </span>
+                  <span class="feed-action-badge">${esc(action)}</span>
+                </p>
+                ${seriesTitle ? `<p class="feed-series" ${seriesId ? `onclick="window.location.href='/series/${seriesId}'"` : ""} style="${seriesId ? 'cursor:pointer' : ''}">${esc(seriesTitle)}</p>` : ""}
+              </div>
             </div>
-          `;
-          list.appendChild(card);
-        });
-      })
-      .catch(() => {
-        document.getElementById("feedLoading").style.display = "none";
-        document.getElementById("feedList").innerHTML =
-          '<p class="feed-empty" style="color:#e94560;">Aktiviteler yüklenemedi.</p>';
+            <div class="feed-details">
+              ${a.rating ? `<span class="feed-rating-badge">${a.rating}/10</span>` : ""}
+              ${a.comment || a.text ? `<p class="feed-comment">"${esc(a.comment || a.text)}"</p>` : ""}
+            </div>
+            <span class="feed-date">${esc(dateStr)}</span>
+          </div>
+        `;
+        list.appendChild(card);
       });
-  </script>
+    })
+    .catch(() => {
+      document.getElementById("feedLoading").style.display = "none";
+      document.getElementById("feedList").innerHTML =
+        '<div class="no-results"><p>⚠️ Aktiviteler yüklenemedi.</p></div>';
+    });
+</script>
 {% endblock %}

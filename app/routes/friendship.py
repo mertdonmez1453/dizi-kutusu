@@ -22,6 +22,7 @@ def get_following():
             "friendship_id": f.id,
             "user_id": f.followed.id,
             "username": f.followed.username,
+            "email": f.followed.email,
             "followed_at": f.created_at.isoformat()
         }
         for f in following_list
@@ -40,6 +41,7 @@ def get_followers():
             "friendship_id": f.id,
             "user_id": f.follower.id,
             "username": f.follower.username,
+            "email": f.follower.email,
             "followed_at": f.created_at.isoformat()
         }
         for f in follower_list
@@ -57,10 +59,21 @@ def check_friendship(target_user_id):
     return jsonify({"is_following": existing is not None})
 
 
-# QUERY: Başka bir kullanıcıyı takip et (INSERT)
+# QUERY: Başka bir kullanıcıyı takip et — /follow/<id> (eski)
 @friendship_bp.post("/follow/<int:target_user_id>")
 @login_required
 def follow_user(target_user_id):
+    return _do_follow(target_user_id)
+
+
+# QUERY: Başka bir kullanıcıyı takip et — POST /<id> (frontend uyumlu)
+@friendship_bp.post("/<int:target_user_id>")
+@login_required
+def follow_user_short(target_user_id):
+    return _do_follow(target_user_id)
+
+
+def _do_follow(target_user_id):
     user = g.current_user
 
     if user.id == target_user_id:
@@ -72,7 +85,7 @@ def follow_user(target_user_id):
         follower_id=user.id, followed_id=target_user_id
     ).first()
     if existing:
-        return jsonify({"error": "Bu kullanıcıyı zaten takip ediyorsunuz."}), 409
+        return jsonify({"message": f"'{target_user.username}' zaten takip ediliyor."}), 200
 
     new_follow = Friendship(follower_id=user.id, followed_id=target_user_id)
     db.session.add(new_follow)
@@ -81,17 +94,28 @@ def follow_user(target_user_id):
     return jsonify({"message": f"'{target_user.username}' takip edildi."}), 201
 
 
-# QUERY: Takipten çık (DELETE)
+# QUERY: Takipten çık — /unfollow/<id> (eski)
 @friendship_bp.delete("/unfollow/<int:target_user_id>")
 @login_required
 def unfollow_user(target_user_id):
+    return _do_unfollow(target_user_id)
+
+
+# QUERY: Takipten çık — DELETE /<id> (frontend uyumlu)
+@friendship_bp.delete("/<int:target_user_id>")
+@login_required
+def unfollow_user_short(target_user_id):
+    return _do_unfollow(target_user_id)
+
+
+def _do_unfollow(target_user_id):
     user = g.current_user
 
     friendship = Friendship.query.filter_by(
         follower_id=user.id, followed_id=target_user_id
     ).first()
     if not friendship:
-        return jsonify({"error": "Bu kullanıcıyı takip etmiyorsunuz."}), 404
+        return jsonify({"message": "Bu kullanıcıyı zaten takip etmiyorsunuz."}), 200
 
     db.session.delete(friendship)
     db.session.commit()
@@ -119,16 +143,46 @@ def search_users():
         {
             "id": u.id,
             "username": u.username,
+            "email": u.email,
             "is_following": u.id in following_ids
         }
         for u in users
     ])
 
 
+# QUERY: Bir kullanıcının public profil bilgisi (friend_profile için)
+@friendship_bp.get("/user/<int:target_user_id>")
+@login_required
+def get_user_profile(target_user_id):
+    user = g.current_user
+    target = User.query.get_or_404(target_user_id)
+
+    is_following = Friendship.query.filter_by(
+        follower_id=user.id, followed_id=target_user_id
+    ).first() is not None
+
+    return jsonify({
+        "id": target.id,
+        "username": target.username,
+        "email": target.email,
+        "is_following": is_following
+    })
+
+
 # QUERY: Bir arkadaşın izleme listesini görüntüle (SELECT + JOIN)
+@friendship_bp.get("/user/<int:target_user_id>/watchlist")
+@login_required
+def get_friend_watchlist_by_user(target_user_id):
+    return _get_friend_watchlist(target_user_id)
+
+
 @friendship_bp.get("/<int:target_user_id>/watchlist")
 @login_required
 def get_friend_watchlist(target_user_id):
+    return _get_friend_watchlist(target_user_id)
+
+
+def _get_friend_watchlist(target_user_id):
     user = g.current_user
 
     is_following = Friendship.query.filter_by(
@@ -142,6 +196,7 @@ def get_friend_watchlist(target_user_id):
     return jsonify([
         {
             "series_id": item.series.id,
+            "series_title": item.series.title,
             "title": item.series.title,
             "image_url": item.series.image_url,
             "status": item.status,
@@ -152,9 +207,19 @@ def get_friend_watchlist(target_user_id):
 
 
 # QUERY: Bir arkadaşın verdiği puanları/yorumları görüntüle (SELECT + JOIN)
+@friendship_bp.get("/user/<int:target_user_id>/reviews")
+@login_required
+def get_friend_reviews_by_user(target_user_id):
+    return _get_friend_reviews(target_user_id)
+
+
 @friendship_bp.get("/<int:target_user_id>/reviews")
 @login_required
 def get_friend_reviews(target_user_id):
+    return _get_friend_reviews(target_user_id)
+
+
+def _get_friend_reviews(target_user_id):
     user = g.current_user
 
     is_following = Friendship.query.filter_by(
@@ -197,7 +262,8 @@ def activity_feed():
 
     for r in recent_reviews:
         activity = {
-            "type": "comment" if r.comment else "rating",
+            "type": "comment" if r.comment else "rated",
+            "action": "commented" if r.comment else "rated",
             "user_id": r.user.id,
             "username": r.user.username,
             "series_id": r.series_id,
@@ -215,7 +281,8 @@ def activity_feed():
 
     for w in recent_watchlist:
         activity = {
-            "type": "watchlist",
+            "type": "watchlist_add",
+            "action": "added_to_watchlist",
             "user_id": w.user.id,
             "username": w.user.username,
             "series_id": w.series_id,
