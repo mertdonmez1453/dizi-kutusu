@@ -51,6 +51,7 @@ def test_login_page(client):
 def test_register_success(client, app):
     start = time.time()
     response = client.post("/register", data={
+        "username": "testuser",
         "email": "test@example.com",
         "password": "password123"
     }, follow_redirects=True)
@@ -78,6 +79,7 @@ def test_register_success(client, app):
 def test_register_invalid_email(client, app):
     start = time.time()
     response = client.post("/register", data={
+        "username": "invaliduser",
         "email": "invalid-email",
         "password": "password123"
     }, follow_redirects=True)
@@ -101,12 +103,13 @@ def test_register_invalid_email(client, app):
 
 def test_register_existing_email(client, app):
     with app.app_context():
-        user = User(email="test2@example.com", password_hash=User.hash_password("password123"))
+        user = User(email="test2@example.com", username="testuser2", password_hash=User.hash_password("password123"))
         db.session.add(user)
         db.session.commit()
 
     start = time.time()
     response = client.post("/register", data={
+        "username": "dupeuser",
         "email": "test2@example.com",
         "password": "newpassword456"
     }, follow_redirects=True)
@@ -132,7 +135,7 @@ def test_register_existing_email(client, app):
 
 def test_login_success(client, app):
     with app.app_context():
-        user = User(email="login@example.com", password_hash=User.hash_password("password123"))
+        user = User(email="login@example.com", username="loginuser", password_hash=User.hash_password("password123"))
         db.session.add(user)
         db.session.commit()
 
@@ -161,7 +164,7 @@ def test_login_success(client, app):
 
 def test_login_invalid_password(client, app):
     with app.app_context():
-        user = User(email="login2@example.com", password_hash=User.hash_password("password123"))
+        user = User(email="login2@example.com", username="loginuser2", password_hash=User.hash_password("password123"))
         db.session.add(user)
         db.session.commit()
 

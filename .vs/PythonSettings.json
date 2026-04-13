@@ -1,0 +1,5 @@
+{
+  "SuppressConfigureTestFrameworkPrompt": "true",
+  "Interpreter": "env3\\Scripts\\python.exe",
+  "TestFramework": "Pytest"
+}
